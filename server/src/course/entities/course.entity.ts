@@ -3,4 +3,6 @@ export class Course {
   label: String;
   teacherId: String;
   studentList: String[];
+  startDate: number;
+  endDate: number;
 }
