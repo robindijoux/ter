@@ -9,18 +9,24 @@ let courses: Course[] = [
     label: "Travail d'étude et de recherche",
     teacherId: '1',
     studentList: ['1', '2', '3'],
+    startDate: new Date().getTime(),
+    endDate: new Date().getTime() + 3600 * 1000,
   },
   {
     id: '2',
     label: 'Concurrence',
     teacherId: '1',
     studentList: ['2', '3'],
+    startDate: new Date().getTime() + 3600 * 1000,
+    endDate: new Date().getTime() + 2 * 3600 * 1000,
   },
   {
     id: '3',
     label: 'Algo',
     teacherId: '2',
     studentList: ['1', '3'],
+    startDate: new Date().getTime() + 2 * 3600 * 1000,
+    endDate: new Date().getTime() + 3 * 3600 * 1000,
   },
 ];
 

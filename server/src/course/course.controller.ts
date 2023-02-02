@@ -10,10 +10,17 @@ import {
   HttpStatus,
   Query,
 } from '@nestjs/common';
-import { ApiExcludeEndpoint, ApiQuery, ApiTags } from '@nestjs/swagger';
+import {
+  ApiExcludeEndpoint,
+  ApiFoundResponse,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { CourseService } from './course.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
+import { Course } from './entities/course.entity';
 
 @Controller('course')
 @ApiTags('course')
@@ -33,6 +40,7 @@ export class CourseController {
     description: 'The target teacherId',
     required: false,
   })
+  @ApiFoundResponse({ type: [Course] })
   findAll(@Query('teacherId') id?: string) {
     if (id === undefined) {
       return this.courseService.findAll();
@@ -41,6 +49,7 @@ export class CourseController {
   }
 
   @Get(':id')
+  @ApiFoundResponse({ type: Course })
   findOne(@Param('id') id: string) {
     let res = this.courseService.findOne(id);
     if (res === undefined)
