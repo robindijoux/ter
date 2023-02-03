@@ -15,8 +15,11 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+    it('should redirect to "/doc"', () => {
+      expect(appController.docRedir()).toMatchObject({
+        url: '/doc',
+        statusCode: 301,
+      });
     });
   });
 });

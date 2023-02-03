@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CourseService } from 'src/course/course.service';
+import { CourseService } from '../course/course.service';
 import { CreateSheetDto } from './dto/create-sheet.dto';
 import { UpdateSheetDto } from './dto/update-sheet.dto';
 import { Sheet } from './entities/sheet.entity';
