@@ -8,6 +8,7 @@ import {
   Delete,
   HttpException,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { SheetService } from './sheet.service';
 import { CreateSheetDto } from './dto/create-sheet.dto';
@@ -16,6 +17,7 @@ import {
   ApiCreatedResponse,
   ApiExcludeEndpoint,
   ApiFoundResponse,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import { Sheet } from './entities/sheet.entity';
@@ -37,9 +39,21 @@ export class SheetController {
   }
 
   @Get()
+  @ApiQuery({
+    name: 'studentId',
+    type: String,
+    description: 'The target studentId',
+    required: false,
+  })
   @ApiFoundResponse({ type: [SheetDto] })
-  findAll() {
-    return this.sheetService.findAll().map((s) => new SheetDto(s));
+  findAll(@Query('studentId') studentId?: String) {
+    if (studentId === undefined) {
+      return this.sheetService.findAll().map((s) => new SheetDto(s));
+    }
+    return this.sheetService
+      .findAll()
+      .filter((s) => s.challenges.has(studentId))
+      .map((s) => new SheetDto(s));
   }
 
   @Get(':id')
