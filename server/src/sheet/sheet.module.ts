@@ -1,10 +1,13 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { SheetService } from './sheet.service';
 import { SheetController } from './sheet.controller';
-import { CourseService } from 'src/course/course.service';
+import { SignatureModule } from '../signature/signature.module';
+import { CourseModule } from '../course/course.module';
 
 @Module({
+  imports: [forwardRef(() => SignatureModule), CourseModule],
   controllers: [SheetController],
-  providers: [SheetService, CourseService],
+  providers: [SheetService],
+  exports: [SheetService],
 })
 export class SheetModule {}

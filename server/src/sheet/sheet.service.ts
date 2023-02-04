@@ -1,5 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { CourseService } from '../course/course.service';
+import { SignatureRequest } from '../signature/model/signature-request/signature-request';
+import { SignatureService } from '../signature/signature.service';
 import { CreateSheetDto } from './dto/create-sheet.dto';
 import { UpdateSheetDto } from './dto/update-sheet.dto';
 import { Sheet } from './entities/sheet.entity';
@@ -8,7 +10,11 @@ let sheets: Sheet[] = [];
 
 @Injectable()
 export class SheetService {
-  public constructor(private courseService: CourseService) {}
+  public constructor(
+    @Inject(forwardRef(() => SignatureService))
+    private signatureService: SignatureService,
+    private courseService: CourseService,
+  ) {}
 
   create(createSheetDto: CreateSheetDto) {
     // retrieve course information
@@ -18,8 +24,10 @@ export class SheetService {
     }
 
     // challenges
-    let challenges = new Map<String, boolean>(
-      course.studentList.map((s) => [s, false]),
+
+    let signatures = this.signatureService.generateSignatureChallenges(
+      course,
+      course.studentList,
     );
 
     // create the new sheet
@@ -29,7 +37,7 @@ export class SheetService {
       courseStartDate: course.startDate,
       courseEndDate: course.endDate,
       teacherId: course.teacherId,
-      challenges: challenges,
+      signatures: signatures,
     };
 
     // store new sheet
@@ -40,6 +48,10 @@ export class SheetService {
 
   findAll() {
     return sheets;
+  }
+
+  findAllByStudentId(studentId: string) {
+    return this.findAll().filter((s) => s.signatures.has(studentId));
   }
 
   findOne(id: string) {
@@ -54,5 +66,22 @@ export class SheetService {
   remove(id: string) {
     // TODO
     return `This action removes a #${id} sheet`;
+  }
+
+  addSignature(signatureRequest: SignatureRequest) {
+    // get the sheet
+    let sheet = this.findOne(signatureRequest.sheetId);
+    if (sheet === undefined) {
+      return false;
+    }
+    // get the target signature's row
+    let target = sheet.signatures.get(signatureRequest.personId);
+    if (target === undefined) {
+      return false;
+    }
+    // update the signature
+    target.signature = signatureRequest.signature;
+
+    return true;
   }
 }

@@ -24,7 +24,7 @@ import { Sheet } from './entities/sheet.entity';
 import { SheetDto } from './dto/sheet.dto';
 
 @Controller('sheet')
-@ApiTags('sheet')
+@ApiTags('Sheet')
 export class SheetController {
   constructor(private readonly sheetService: SheetService) {}
 
@@ -46,13 +46,12 @@ export class SheetController {
     required: false,
   })
   @ApiFoundResponse({ type: [SheetDto] })
-  findAll(@Query('studentId') studentId?: String) {
+  findAll(@Query('studentId') studentId?: string) {
     if (studentId === undefined) {
       return this.sheetService.findAll().map((s) => new SheetDto(s));
     }
     return this.sheetService
-      .findAll()
-      .filter((s) => s.challenges.has(studentId))
+      .findAllByStudentId(studentId)
       .map((s) => new SheetDto(s));
   }
 

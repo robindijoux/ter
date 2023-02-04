@@ -23,7 +23,7 @@ import { UpdateCourseDto } from './dto/update-course.dto';
 import { Course } from './entities/course.entity';
 
 @Controller('course')
-@ApiTags('course')
+@ApiTags('Course')
 export class CourseController {
   constructor(private readonly courseService: CourseService) {}
 

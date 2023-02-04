@@ -3,17 +3,17 @@ import { Sheet } from '../entities/sheet.entity';
 
 export class SheetDto {
   @ApiProperty()
-  id: String;
+  id: string;
   @ApiProperty()
-  courseLabel: String;
+  courseLabel: string;
   @ApiProperty()
   courseStartDate: number;
   @ApiProperty()
   courseEndDate: number;
   @ApiProperty()
-  teacherId: String;
+  teacherId: string;
   @ApiProperty()
-  challenges: Object;
+  signatures: Object;
 
   constructor(sheet: Sheet) {
     this.id = sheet.id;
@@ -21,6 +21,6 @@ export class SheetDto {
     this.courseStartDate = sheet.courseStartDate;
     this.courseEndDate = sheet.courseEndDate;
     this.teacherId = sheet.teacherId;
-    this.challenges = Object.fromEntries(sheet.challenges);
+    this.signatures = Object.fromEntries(sheet.signatures);
   }
 }

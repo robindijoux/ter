@@ -1,8 +1,10 @@
+import { Signature } from '../../signature/model/signature/signature';
+
 export class Sheet {
-  id: String;
-  courseLabel: String;
+  id: string;
+  courseLabel: string;
   courseStartDate: number;
   courseEndDate: number;
-  teacherId: String;
-  challenges: Map<String, boolean>;
+  teacherId: string;
+  signatures: Map<string, Signature>;
 }

@@ -2,13 +2,13 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class Course {
   @ApiProperty()
-  id: String;
+  id: string;
   @ApiProperty()
-  label: String;
+  label: string;
   @ApiProperty()
-  teacherId: String;
+  teacherId: string;
   @ApiProperty()
-  studentList: String[];
+  studentList: string[];
   @ApiProperty()
   startDate: number;
   @ApiProperty()
