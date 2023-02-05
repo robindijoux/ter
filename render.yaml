@@ -8,6 +8,3 @@ services:
     healthCheckPath: /
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    envVars:
-      - key: PORT
-        value: 3000
