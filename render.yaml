@@ -7,7 +7,6 @@ services:
     rootDir: server
     healthCheckPath: /
     dockerfilePath: server/Dockerfile
-    dockerContext: server/src
     envVars:
       - key: PORT
         value: 3000
