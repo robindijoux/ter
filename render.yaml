@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: server
+    env: docker
+    region: frankfurt
+    plan: free
+    rootDir: server
+    healthCheckPath: /
+    dockerfilePath: server/Dockerfile
+    dockerContext: server/src
+    envVars:
+      - key: PORT
+        value: 3000
