@@ -1,8 +1,10 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { CourseService } from '../course/course.service';
+import { SheetUpdateWebSocketGateway } from '../sheet-update-web-socket/sheet-update-web-socket.gateway';
 import { SignatureRequest } from '../signature/model/signature-request/signature-request';
 import { SignatureService } from '../signature/signature.service';
 import { CreateSheetDto } from './dto/create-sheet.dto';
+import { SheetDto } from './dto/sheet.dto';
 import { UpdateSheetDto } from './dto/update-sheet.dto';
 import { Sheet } from './entities/sheet.entity';
 
@@ -14,6 +16,7 @@ export class SheetService {
     @Inject(forwardRef(() => SignatureService))
     private signatureService: SignatureService,
     private courseService: CourseService,
+    private webSocket: SheetUpdateWebSocketGateway,
   ) {}
 
   create(createSheetDto: CreateSheetDto) {
@@ -81,6 +84,9 @@ export class SheetService {
     }
     // update the signature
     target.signature = signatureRequest.signature;
+
+    // publish sheet update
+    this.webSocket.publishSheetUpdate(sheet.id, new SheetDto(sheet));
 
     return true;
   }

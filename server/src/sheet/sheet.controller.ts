@@ -20,7 +20,6 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { Sheet } from './entities/sheet.entity';
 import { SheetDto } from './dto/sheet.dto';
 
 @Controller('sheet')
