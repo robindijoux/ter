@@ -8,6 +8,7 @@ import {
 import {
   ApiAcceptedResponse,
   ApiCreatedResponse,
+  ApiOperation,
   ApiResponse,
   ApiTags,
   ApiUnauthorizedResponse,
@@ -28,6 +29,10 @@ export class SignatureController {
   @ApiUnauthorizedResponse({
     type: String,
     description: "The signature hasn't been validated.",
+  })
+  @ApiOperation({
+    summary:
+      "Validate a signature and add it to the related sheet. It can be a student's one if the attendance is still ongoing, or a teacher's one (that will stop the attendance, if not already the case).",
   })
   sign(@Body() signatureRequest: SignatureRequest) {
     if (this.signatureService.sign(signatureRequest)) {

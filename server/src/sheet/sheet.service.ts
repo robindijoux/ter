@@ -1,8 +1,10 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { CourseService } from '../course/course.service';
+import { SheetUpdateWebSocketGateway } from '../sheet-update-web-socket/sheet-update-web-socket.gateway';
 import { SignatureRequest } from '../signature/model/signature-request/signature-request';
 import { SignatureService } from '../signature/signature.service';
 import { CreateSheetDto } from './dto/create-sheet.dto';
+import { SheetDto } from './dto/sheet.dto';
 import { UpdateSheetDto } from './dto/update-sheet.dto';
 import { Sheet } from './entities/sheet.entity';
 
@@ -14,6 +16,7 @@ export class SheetService {
     @Inject(forwardRef(() => SignatureService))
     private signatureService: SignatureService,
     private courseService: CourseService,
+    private webSocket: SheetUpdateWebSocketGateway,
   ) {}
 
   create(createSheetDto: CreateSheetDto) {
@@ -28,6 +31,7 @@ export class SheetService {
     let signatures = this.signatureService.generateSignatureChallenges(
       course,
       course.studentList,
+      course.teacherId,
     );
 
     // create the new sheet
@@ -37,7 +41,9 @@ export class SheetService {
       courseStartDate: course.startDate,
       courseEndDate: course.endDate,
       teacherId: course.teacherId,
-      signatures: signatures,
+      studentsSignatures: signatures.studentsSignatures,
+      teacherSignature: signatures.teacherSignature,
+      isAttendanceOngoing: true,
     };
 
     // store new sheet
@@ -47,15 +53,15 @@ export class SheetService {
   }
 
   findAll() {
-    return sheets;
+    return sheets.filter((s) => s.isAttendanceOngoing);
   }
 
   findAllByStudentId(studentId: string) {
-    return this.findAll().filter((s) => s.signatures.has(studentId));
+    return this.findAll().filter((s) => s.studentsSignatures.has(studentId));
   }
 
   findOne(id: string) {
-    return sheets.find((sheet) => sheet.id === id);
+    return sheets.find((sheet) => sheet.id === id && sheet.isAttendanceOngoing);
   }
 
   update(id: string, updateSheetDto: UpdateSheetDto) {
@@ -74,14 +80,41 @@ export class SheetService {
     if (sheet === undefined) {
       return false;
     }
-    // get the target signature's row
-    let target = sheet.signatures.get(signatureRequest.personId);
-    if (target === undefined) {
-      return false;
+    let target = sheet.studentsSignatures.get(signatureRequest.personId);
+    if (target !== undefined) {
+      // in case of student signature
+      if (!sheet.isAttendanceOngoing) {
+        // the attendance must be ongoing. Trigger failure.
+        return false;
+      }
+    } else {
+      // it's not a student signature. It must be a teacher signature.
+      target = sheet.teacherSignature;
+      if (target === undefined) {
+        // it's neither a valid teacher signature or student signature. Trigger failure.
+        return false;
+      }
+      // in case of teacher signature
+      else if (sheet.isAttendanceOngoing) {
+        // the attendance must be stopped. Trigger the stop.
+        sheet.isAttendanceOngoing = false;
+      }
     }
     // update the signature
     target.signature = signatureRequest.signature;
 
+    // publish sheet update
+    this.webSocket.publishSheetUpdate(sheet.id, new SheetDto(sheet));
+
     return true;
+  }
+
+  stopAttendance(id: string) {
+    let sheet = this.findOne(id);
+    if (sheet === undefined) {
+      return undefined;
+    }
+    sheet.isAttendanceOngoing = false;
+    return sheet;
   }
 }

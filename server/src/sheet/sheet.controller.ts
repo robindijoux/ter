@@ -17,10 +17,11 @@ import {
   ApiCreatedResponse,
   ApiExcludeEndpoint,
   ApiFoundResponse,
+  ApiNotFoundResponse,
+  ApiOperation,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { Sheet } from './entities/sheet.entity';
 import { SheetDto } from './dto/sheet.dto';
 
 @Controller('sheet')
@@ -78,5 +79,23 @@ export class SheetController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.sheetService.remove(id);
+  }
+
+  @Post('attendanceStop/:id')
+  @ApiOperation({
+    summary:
+      "Stop attendance. The next students signatures won't be authorized anymore.",
+  })
+  @ApiNotFoundResponse({ description: 'Sheet not found' })
+  @ApiCreatedResponse({ description: 'Attendance successfully stopped' })
+  stopAttendance(@Param('id') id: string) {
+    let res = this.sheetService.stopAttendance(id);
+    if (res === undefined) {
+      throw new HttpException(
+        'Sheet ' + id + ' not found.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    return { message: 'Attendance successfully stopped' };
   }
 }

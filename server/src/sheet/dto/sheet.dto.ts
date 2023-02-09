@@ -21,6 +21,6 @@ export class SheetDto {
     this.courseStartDate = sheet.courseStartDate;
     this.courseEndDate = sheet.courseEndDate;
     this.teacherId = sheet.teacherId;
-    this.signatures = Object.fromEntries(sheet.signatures);
+    this.signatures = Object.fromEntries(sheet.studentsSignatures);
   }
 }

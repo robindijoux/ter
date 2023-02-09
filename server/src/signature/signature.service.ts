@@ -6,6 +6,11 @@ import { Signature } from './model/signature/signature';
 
 @Injectable()
 export class SignatureService {
+  // /**
+  //  * Map of challenges for each person. The key is the person id.
+  //  */
+  // challenges: Map<string, string> = new Map();
+
   constructor(
     @Inject(forwardRef(() => SheetService)) private sheetService: SheetService,
   ) {}
@@ -22,9 +27,21 @@ export class SignatureService {
     return true;
   }
 
-  generateSignatureChallenges(course: Course, studentList: string[]) {
-    return new Map<string, Signature>(
-      studentList.map((s) => [s, new Signature()]),
+  generateSignatureChallenges(
+    course: Course,
+    studentList: string[],
+    teacherId: string,
+  ) {
+    const studentsSignatures = new Map<string, Signature>(
+      studentList.map((s) => {
+        // this.challenges.set(s, 'challenge');
+        return [s, new Signature()];
+      }),
     );
+
+    const teacherSignature = new Signature();
+    // this.challenges.set(teacherId, 'challenge');
+
+    return { studentsSignatures, teacherSignature };
   }
 }

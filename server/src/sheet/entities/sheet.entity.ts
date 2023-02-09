@@ -6,5 +6,7 @@ export class Sheet {
   courseStartDate: number;
   courseEndDate: number;
   teacherId: string;
-  signatures: Map<string, Signature>;
+  studentsSignatures: Map<string, Signature>;
+  teacherSignature: Signature;
+  isAttendanceOngoing: boolean;
 }
