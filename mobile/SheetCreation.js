@@ -29,31 +29,39 @@ export default function SheetCreation({ navigation }){
     function getSelectedCourseFromChildComponent(selectedCourseChild) {
         setSelectedCourse(selectedCourseChild);
         console.log("Pass selected course to parent component");
-        console.log("Selected course: " + selectedCourse);
+        console.log("Selected course: " + JSON.stringify(selectedCourse));
     }
 
     function createSheet() {
         console.log("--- Create sheet ---");
-        console.log("Course: " + selectedCourse);
+        console.log("Course id : " + selectedCourse.id);
 
         axios.post(`${baseUrl}/sheet`, {
-            "courseId": selectedCourse,
+            "courseId": selectedCourse.id,
         }).then(r => console.log(r.data));
     }
 
     return (
         <View>
             <DropdownComponent data={data} value={selectedCourse} pass={getSelectedCourseFromChildComponent}></DropdownComponent>
+            <View style={styles.display}>
+            {selectedCourse != null? (
+                <Text style={styles.title}>{selectedCourse.label}</Text>
+                ) : (
+                    <Text>Pas de cours sélectionné</Text>
+                )
+            }
+            <Text style={styles.wait}>Affichage en cours de développement...</Text>
+            </View>
             <Button title={"Créer le cours"} onPress={createSheet}></Button>
         </View>
     );
 }
 const DropdownComponent = props => {
-    const [value, setValue] = useState(null);
     const [isFocus, setIsFocus] = useState(false);
 
     const renderLabel = () => {
-        if (value || isFocus) {
+        if (props.data || isFocus) {
             return (
                 <Text style={[styles.label, isFocus && { color: 'blue' }]}>
                     Dropdown label
@@ -62,10 +70,6 @@ const DropdownComponent = props => {
         }
         return null;
     };
-
-    useEffect(() => {
-        props.pass(value);
-    }, [value]);
 
     return (
         <View style={styles.container}>
@@ -83,12 +87,10 @@ const DropdownComponent = props => {
                 valueField="id"
                 placeholder={!isFocus ? 'Choisir la matière' : '...'}
                 searchPlaceholder="Chercher..."
-                value={value}
                 onFocus={() => setIsFocus(true)}
                 onBlur={() => setIsFocus(false)}
                 onChange={item => {
-                    setValue(item.id); //TODO: Stockage double de l'id, à voir si on peut faire autrement
-                    props.pass(item.id); //TODO : Renvoie de l'id uniquement ou de l'objet complet ?
+                    props.pass(item);
                     setIsFocus(false);
                 }}
                 renderLeftIcon={() => (
@@ -140,6 +142,25 @@ const DropdownComponent = props => {
 // };
 
 const styles = StyleSheet.create({
+    display: {
+        alignItems: 'center',
+        // justifyContent: 'center',
+        backgroundColor: 'white',
+        borderWidth: 2,
+        borderColor: 'black',
+        borderRadius: 8,
+        marginHorizontal: 6,
+        paddingTop: 16,
+        height: 400,
+    },
+    title: {
+        fontSize: 20,
+    },
+    wait: {
+        fontSize: 16,
+        color: 'red',
+        margin: 20,
+    },
     container: {
         backgroundColor: 'white',
         padding: 16,
