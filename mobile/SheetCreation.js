@@ -4,29 +4,46 @@ import { Dropdown } from 'react-native-element-dropdown';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {StatusBar} from "expo-status-bar";
+import axios from 'axios';
+const baseUrl = 'https://server-aph4.onrender.com';
+// const baseUrl = 'http://192.168.1.31:3000';
 
-const data = [
-    { label: 'Item 1', value: '1' },
-    { label: 'Item 2', value: '2' },
-    { label: 'Item 3', value: '3' },
-    { label: 'Item 4', value: '4' },
-    { label: 'Item 5', value: '5' },
-    { label: 'Item 6', value: '6' },
-    { label: 'Item 7', value: '7' },
-];
+// const initialData = [
+//     { label: 'Item 1', value: '1' },
+//     { label: 'Item 2', value: '2' },
+//     { label: 'Item 3', value: '3' },
+//     { label: 'Item 4', value: '4' },
+//     { label: 'Item 5', value: '5' },
+//     { label: 'Item 6', value: '6' },
+//     { label: 'Item 7', value: '7' },
+// ];
 
 export default function SheetCreation({ navigation }){
-
+    const [data, setData] = useState([]);
+// Invoking get method to perform a GET request to the API
+    const getCourses = async () => {
+        try {
+            const response = await axios.get(`${baseUrl}/course?teacherId=1`);//TODO: change the teacherId to the one of the connected user
+            console.log(response.data);
+            setData(response.data);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+    useEffect(() => {
+        getCourses().then(() => console.log("Call to getCourses done"));
+    }
+    , []);
     return (
         <View>
-            <DropdownComponent></DropdownComponent>
+            <DropdownComponent data={data}></DropdownComponent>
             <DatePicker title="Heure de début"></DatePicker>
             <DatePicker title="Heure de fin"></DatePicker>
             <Button title={"Créer le cours"}></Button>
         </View>
     );
 }
-const DropdownComponent = () => {
+const DropdownComponent = props => {
     const [value, setValue] = useState(null);
     const [isFocus, setIsFocus] = useState(false);
 
@@ -50,11 +67,11 @@ const DropdownComponent = () => {
                 selectedTextStyle={styles.selectedTextStyle}
                 inputSearchStyle={styles.inputSearchStyle}
                 iconStyle={styles.iconStyle}
-                data={data}
+                data={props.data}
                 search
                 maxHeight={300}
                 labelField="label"
-                valueField="value"
+                valueField="id"
                 placeholder={!isFocus ? 'Choisir la matière' : '...'}
                 searchPlaceholder="Chercher..."
                 value={value}

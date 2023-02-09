@@ -1,7 +1,5 @@
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
     StyleSheet,
     Text,
@@ -28,6 +26,7 @@ export default function Login({ navigation }) {
                     onChangeText={(email) => setEmail(email)}
                 />
             </View>
+            {/*TODO: uncomment this when the password is implemented*/}
             {/*<View style={styles.inputView}>*/}
             {/*    <TextInput*/}
             {/*        style={styles.TextInput}*/}
