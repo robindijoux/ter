@@ -23,7 +23,10 @@ export default function Login({ navigation }) {
             });
             if (r.status === 201) {
                 console.log("Authentication done : ", r.data);
-                navigation.navigate('SheetCreation');
+                if(r.data.isTeacher)
+                    navigation.navigate('SheetCreation');
+                else
+                    navigation.navigate('StudentSpace');
             }
         } catch (error) {
             alert("Authentication failed ->\n "+error);
