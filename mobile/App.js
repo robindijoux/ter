@@ -6,6 +6,7 @@ import SheetCreation from "./SheetCreation";
 import StudentSpace from "./StudentSpace";
 
 const Stack = createNativeStackNavigator();
+export const baseUrl = 'https://15a2-37-66-146-127.eu.ngrok.io';
 export default function App() {
     return (
         <NavigationContainer>

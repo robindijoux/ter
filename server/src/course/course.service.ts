@@ -7,7 +7,7 @@ let courses: Course[] = [
   {
     id: '1',
     label: "Travail d'étude et de recherche",
-    teacherId: '1',
+    teacherId: 'yves.roudier@unice.fr',
     studentList: ['dr80', 'gt'],
     startDate: new Date().getTime(),
     endDate: new Date().getTime() + 3600 * 1000,
@@ -15,7 +15,7 @@ let courses: Course[] = [
   {
     id: '2',
     label: 'Concurrence',
-    teacherId: '1',
+    teacherId: 'yves.roudier@unice.fr',
     studentList: ['dr80'],
     startDate: new Date().getTime() + 3600 * 1000,
     endDate: new Date().getTime() + 2 * 3600 * 1000,

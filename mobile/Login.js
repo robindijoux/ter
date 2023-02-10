@@ -24,9 +24,9 @@ export default function Login({ navigation }) {
             if (r.status === 201) {
                 console.log("Authentication done : ", r.data);
                 if(r.data.isTeacher)
-                    navigation.navigate('SheetCreation');
+                    navigation.navigate('SheetCreation', {userData : r.data});
                 else
-                    navigation.navigate('StudentSpace');
+                    navigation.navigate('StudentSpace', {userData : r.data});
             }
         } catch (error) {
             alert("Authentication failed ->\n "+error);

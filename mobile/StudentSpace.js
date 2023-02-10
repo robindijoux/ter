@@ -4,11 +4,26 @@ import { Dropdown } from 'react-native-element-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {StatusBar} from "expo-status-bar";
 import axios from 'axios';
+import {baseUrl} from "./App";
 // const baseUrl = 'https://server-aph4.onrender.com';
-const baseUrl = 'https://15a2-37-66-146-127.eu.ngrok.io';
 
+export default function StudentSpace({ route, navigation }){
+    let [data, setData] = useState([]);
 
-export default function StudentSpace({ navigation }){
+    const studentData = route.params.userData;
+    const getSheets = async () => {
+        try {
+            const response = await axios.get(`${baseUrl}/sheet?studentId=${studentData.id}`);//TODO: change the studentId to the one of the connected user
+            console.log(response.data);
+            setData(response.data);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+    useEffect(() => {
+            getSheets().then(() => console.log("Call to getSheets done"));
+        }
+        , []);
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Student space</Text>

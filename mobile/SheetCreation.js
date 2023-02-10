@@ -5,16 +5,18 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {StatusBar} from "expo-status-bar";
 import axios from 'axios';
+import {baseUrl} from "./App";
 // const baseUrl = 'https://server-aph4.onrender.com';
-const baseUrl = 'https://15a2-37-66-146-127.eu.ngrok.io';
-
-export default function SheetCreation({ navigation }){
+export default function SheetCreation({ route, navigation }){
     let [data, setData] = useState([]);
     let [selectedCourse, setSelectedCourse] = useState(null);
+
+    const teacherData = route.params.userData;
 // Invoking get method to perform a GET request to the API
     const getCourses = async () => {
         try {
-            const response = await axios.get(`${baseUrl}/course?teacherId=1`);//TODO: change the teacherId to the one of the connected user
+            console.log(JSON.stringify(teacherData));
+            const response = await axios.get(`${baseUrl}/course?teacherId=${teacherData.id}`);
             console.log(response.data);
             setData(response.data);
         } catch (error) {
