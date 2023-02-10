@@ -6,7 +6,6 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import {StatusBar} from "expo-status-bar";
 import axios from 'axios';
 import {baseUrl} from "./App";
-// const baseUrl = 'https://server-aph4.onrender.com';
 export default function SheetCreation({ route, navigation }){
     let [data, setData] = useState([]);
     let [selectedCourse, setSelectedCourse] = useState(null);
