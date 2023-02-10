@@ -17,7 +17,11 @@ export class SheetService {
     private signatureService: SignatureService,
     private courseService: CourseService,
     private webSocket: SheetUpdateWebSocketGateway,
-  ) {}
+  ) {
+    this.create({
+      courseId: '1',
+    });
+  }
 
   create(createSheetDto: CreateSheetDto) {
     // retrieve course information
