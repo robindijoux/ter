@@ -6,7 +6,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import {StatusBar} from "expo-status-bar";
 import axios from 'axios';
 // const baseUrl = 'https://server-aph4.onrender.com';
-const baseUrl = 'https://6908-37-66-146-127.eu.ngrok.io';
+const baseUrl = 'https://15a2-37-66-146-127.eu.ngrok.io';
 
 export default function SheetCreation({ navigation }){
     let [data, setData] = useState([]);
@@ -26,6 +26,7 @@ export default function SheetCreation({ navigation }){
     }
     , []);
 
+    //TODO: try to replace by the onChange component method
     function getSelectedCourseFromChildComponent(selectedCourseChild) {
         setSelectedCourse(selectedCourseChild);
         console.log("Pass selected course to parent component");

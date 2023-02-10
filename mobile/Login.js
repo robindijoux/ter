@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import {
     StyleSheet,
     Text,
@@ -9,9 +9,26 @@ import {
     Button,
     TouchableOpacity,
 } from "react-native";
+import axios from "axios";
+
+const baseUrl = 'https://15a2-37-66-146-127.eu.ngrok.io';
+
 export default function Login({ navigation }) {
-    const [email, setEmail] = useState("");
+    const [userId, setUserId] = useState("");
     const [password, setPassword] = useState("");
+    const authenticateUser = async () => {
+        try {
+            const r = await axios.post(`${baseUrl}/authentication`, {
+                "userId": userId,
+            });
+            if (r.status === 201) {
+                console.log("Authentication done : ", r.data);
+                navigation.navigate('SheetCreation');
+            }
+        } catch (error) {
+            alert("Authentication failed ->\n "+error);
+        }
+    }
     return (
         <View style={styles.container}>
             <Image style={styles.image} source={require("./assets/polytech.jpeg")} />
@@ -23,7 +40,7 @@ export default function Login({ navigation }) {
                     style={styles.TextInput}
                     placeholder="N° étudiant ou mail"
                     placeholderTextColor="#003f5c"
-                    onChangeText={(email) => setEmail(email)}
+                    onChangeText={(userId) => setUserId(userId)}
                 />
             </View>
             {/*TODO: uncomment this when the password is implemented*/}
@@ -39,7 +56,7 @@ export default function Login({ navigation }) {
             {/*<TouchableOpacity>*/}
             {/*    <Text style={styles.forgot_button}>Forgot Password?</Text>*/}
             {/*</TouchableOpacity>*/}
-            <TouchableOpacity style={styles.loginBtn} onPress={() => navigation.navigate('SheetCreation')}>
+            <TouchableOpacity style={styles.loginBtn} onPress={authenticateUser}>
                 <Text>LOGIN</Text>
             </TouchableOpacity>
         </View>
