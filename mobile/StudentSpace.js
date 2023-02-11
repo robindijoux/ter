@@ -28,6 +28,7 @@ export default function StudentSpace({ route, navigation }){
                 "signature": "signValue"
             });
             console.log(response.data);
+            alert("Feuille signée !");
         } catch (error) {
             console.log("Not signed: ", error);
         }
