@@ -21,7 +21,7 @@ export default function SheetCreation({ route, navigation }){
         }
     }
     useEffect(() => {
-        getCourses().then(() => console.log("Call to getCourses done"));
+        getCourses().then(() => console.log("Courses loaded"));
     }
     , []);
 
@@ -33,7 +33,7 @@ export default function SheetCreation({ route, navigation }){
     }
 
     function createSheet() {
-        console.log("--- Create sheet ---");
+        console.log("--- Creating sheet ---");
         console.log("Course id : " + selectedCourse.id);
 
         axios.post(`${BASE_URL}/sheet`, {
