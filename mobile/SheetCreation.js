@@ -2,10 +2,8 @@ import React, {useEffect, useState} from 'react';
 import {Button, Image, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import {StatusBar} from "expo-status-bar";
 import axios from 'axios';
-import {baseUrl} from "./App";
+import {BASE_URL} from "./global";
 export default function SheetCreation({ route, navigation }){
     let [data, setData] = useState([]);
     let [selectedCourse, setSelectedCourse] = useState(null);
@@ -15,7 +13,7 @@ export default function SheetCreation({ route, navigation }){
     const getCourses = async () => {
         try {
             console.log(JSON.stringify(teacherData));
-            const response = await axios.get(`${baseUrl}/course?teacherId=${teacherData.id}`);
+            const response = await axios.get(`${BASE_URL}/course?teacherId=${teacherData.id}`);
             console.log(response.data);
             setData(response.data);
         } catch (error) {
@@ -38,7 +36,7 @@ export default function SheetCreation({ route, navigation }){
         console.log("--- Create sheet ---");
         console.log("Course id : " + selectedCourse.id);
 
-        axios.post(`${baseUrl}/sheet`, {
+        axios.post(`${BASE_URL}/sheet`, {
             "courseId": selectedCourse.id,
         }).then(r => console.log(r.data));
     }
