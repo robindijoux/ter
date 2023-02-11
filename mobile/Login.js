@@ -10,14 +10,14 @@ import {
   TouchableOpacity,
 } from "react-native";
 import axios from "axios";
-import { baseUrl } from "./App";
+import { BASE_URL } from "./global";
 
 export default function Login({ navigation }) {
   const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
   const authenticateUser = async () => {
     try {
-      const r = await axios.post(`${baseUrl}/authentication`, {
+      const r = await axios.post(`${BASE_URL}/authentication`, {
         userId: userId,
       });
       if (r.status === 201) {
@@ -30,6 +30,7 @@ export default function Login({ navigation }) {
       alert("Authentication failed ->\n " + error);
     }
   };
+
   return (
     <View style={styles.container}>
       <Image style={styles.image} source={require("./assets/polytech.jpeg")} />

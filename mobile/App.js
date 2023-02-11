@@ -7,8 +7,6 @@ import StudentSpace from "./StudentSpace";
 import Attendance from "./Attendance";
 
 const Stack = createNativeStackNavigator();
-export const baseUrl = "https://de34-77-159-193-46.eu.ngrok.io";
-
 export default function App() {
   return (
     <NavigationContainer>

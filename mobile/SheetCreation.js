@@ -11,10 +11,8 @@ import {
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import AntDesign from "react-native-vector-icons/AntDesign";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { StatusBar } from "expo-status-bar";
 import axios from "axios";
-import { baseUrl } from "./App";
+import { BASE_URL } from "./global";
 export default function SheetCreation({ route, navigation }) {
   let [data, setData] = useState([]);
   let [selectedCourse, setSelectedCourse] = useState(null);
@@ -25,7 +23,7 @@ export default function SheetCreation({ route, navigation }) {
     try {
       console.log(JSON.stringify(teacherData));
       const response = await axios.get(
-        `${baseUrl}/course?teacherId=${teacherData.id}`
+        `${BASE_URL}/course?teacherId=${teacherData.id}`
       );
       console.log(response.data);
       setData(response.data);
@@ -33,6 +31,7 @@ export default function SheetCreation({ route, navigation }) {
       console.error(error);
     }
   };
+
   useEffect(() => {
     getCourses().then(() => console.log("Call to getCourses done"));
   }, []);
@@ -49,13 +48,10 @@ export default function SheetCreation({ route, navigation }) {
     console.log("Course id : " + selectedCourse.id);
 
     axios
-      .post(`${baseUrl}/sheet`, {
+      .post(`${BASE_URL}/sheet`, {
         courseId: selectedCourse.id,
       })
-      .then((r) => {
-        console.log(r.data);
-        navigation.navigate("Attendance", { createdSheet: r.data });
-      });
+      .then((r) => console.log(r.data));
   }
 
   return (

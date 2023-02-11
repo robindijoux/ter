@@ -1,17 +1,14 @@
 import React, {useEffect, useState} from 'react';
 import {Button, Image, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View} from 'react-native';
-import { Dropdown } from 'react-native-element-dropdown';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import {StatusBar} from "expo-status-bar";
 import axios from 'axios';
-import {baseUrl} from "./App";
+import {BASE_URL} from "./global";
 export default function StudentSpace({ route, navigation }){
     let [data, setData] = useState([]);
 
     const studentData = route.params.userData;
     const getSheets = async () => {
         try {
-            const response = await axios.get(`${baseUrl}/sheet?studentId=${studentData.id}`);//TODO: change the studentId to the one of the connected user
+            const response = await axios.get(`${BASE_URL}/sheet?studentId=${studentData.id}`);//TODO: change the studentId to the one of the connected user
             console.log(response.data);
             setData(response.data);
         } catch (error) {
