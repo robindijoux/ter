@@ -7,13 +7,12 @@ import {
   ActivityIndicator,
 } from "react-native";
 import React, { Fragment } from "react";
-import { baseUrl } from "./App";
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import axios from "axios";
+import { BASE_URL } from "./global";
 
-// const wsUrl = baseUrl + "/sheetUpdate";
-const wsUrl = "https://de34-77-159-193-46.eu.ngrok.io" + "/sheetUpdate";
+const wsUrl = BASE_URL + "/sheetUpdate";
 
 const socket = io.connect(wsUrl);
 
@@ -23,9 +22,9 @@ const Attendance = ({ navigation, route }) => {
   const createdSheet = route.params.createdSheet;
 
   const stopAttendance = () => {
-    console.log(`${baseUrl}/sheet/attendanceStop/${createdSheet.id}`);
+    console.log(`${BASE_URL}/sheet/attendanceStop/${createdSheet.id}`);
     axios
-      .post(baseUrl + "/sheet/" + createdSheet.id + "/attendanceStop", null)
+      .post(BASE_URL + "/sheet/" + createdSheet.id + "/attendanceStop", null)
       .then((r) => {
         console.log(r);
       })

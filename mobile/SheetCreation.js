@@ -30,53 +30,51 @@ export default function SheetCreation({ route, navigation }) {
     } catch (error) {
       console.error(error);
     }
-    useEffect(() => {
-      getCourses().then(() => console.log("Courses loaded"));
-    }, []);
   };
-
   useEffect(() => {
-    getCourses().then(() => console.log("Call to getCourses done"));
+    getCourses().then(() => console.log("Courses loaded"));
   }, []);
+
+  //TODO: try to replace by the onChange component method
+  function getSelectedCourseFromChildComponent(selectedCourseChild) {
+    setSelectedCourse(selectedCourseChild);
+    console.log("Pass selected course to parent component");
+    console.log("Selected course: " + JSON.stringify(selectedCourse));
+  }
 
   function createSheet() {
     console.log("--- Creating sheet ---");
     console.log("Course id : " + selectedCourse.id);
 
-    function createSheet() {
-      console.log("--- Create sheet ---");
-      console.log("Course id : " + selectedCourse.id);
-
-      axios
-        .post(`${BASE_URL}/sheet`, {
-          courseId: selectedCourse.id,
-        })
-        .then((r) => console.log(r.data));
-    }
-
-    return (
-      <View>
-        <DropdownComponent
-          data={data}
-          value={selectedCourse}
-          pass={getSelectedCourseFromChildComponent}
-        ></DropdownComponent>
-        <View style={styles.display}>
-          {selectedCourse != null ? (
-            <Text style={styles.title}>{selectedCourse.label}</Text>
-          ) : (
-            <Text>Pas de cours sélectionné</Text>
-          )}
-          <Text style={styles.wait}>
-            Affichage en cours de développement...
-          </Text>
-        </View>
-        <Button title={"Créer le cours"} onPress={createSheet}></Button>
-      </View>
-    );
+    axios
+      .post(`${BASE_URL}/sheet`, {
+        courseId: selectedCourse.id,
+      })
+      .then((r) => {
+        console.log(r.data);
+        navigation.navigate("Attendance", { createdSheet: r.data });
+      });
   }
-}
 
+  return (
+    <View>
+      <DropdownComponent
+        data={data}
+        value={selectedCourse}
+        pass={getSelectedCourseFromChildComponent}
+      ></DropdownComponent>
+      <View style={styles.display}>
+        {selectedCourse != null ? (
+          <Text style={styles.title}>{selectedCourse.label}</Text>
+        ) : (
+          <Text>Pas de cours sélectionné</Text>
+        )}
+        <Text style={styles.wait}>Affichage en cours de développement...</Text>
+      </View>
+      <Button title={"Créer le cours"} onPress={createSheet}></Button>
+    </View>
+  );
+}
 const DropdownComponent = (props) => {
   const [isFocus, setIsFocus] = useState(false);
 
