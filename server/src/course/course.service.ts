@@ -23,11 +23,19 @@ let courses: Course[] = [
   {
     id: '3',
     label: 'Algo',
-    teacherId: '2',
+    teacherId: 'yves.roudier@unice.fr',
     studentList: ['gt'],
     startDate: new Date().getTime() + 2 * 3600 * 1000,
     endDate: new Date().getTime() + 3 * 3600 * 1000,
   },
+  {
+    id: '4',
+    label: 'Cybersecurité',
+    teacherId: 'yves.roudier@unice.fr',
+    studentList: ['dr80', 'gt'],
+    startDate: new Date().getTime() - 2 * 3600 * 1000,
+    endDate: new Date().getTime() - 3600 * 1000,
+  }
 ];
 
 @Injectable()
