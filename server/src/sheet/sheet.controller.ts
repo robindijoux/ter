@@ -81,7 +81,7 @@ export class SheetController {
     return this.sheetService.remove(id);
   }
 
-  @Post('attendanceStop/:id')
+  @Post(':id/attendanceStop')
   @ApiOperation({
     summary:
       "Stop attendance. The next students signatures won't be authorized anymore.",

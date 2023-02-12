@@ -53,6 +53,10 @@ export class SheetService {
     // store new sheet
     sheets.push(newSheet);
 
+    // mock signature
+    this.mockSignature(newSheet);
+
+    this.webSocket.publishSheetUpdate(newSheet.id, new SheetDto(newSheet));
     return newSheet;
   }
 
@@ -120,5 +124,20 @@ export class SheetService {
     }
     sheet.isAttendanceOngoing = false;
     return sheet;
+  }
+
+  mockSignature(sheet: Sheet) {
+    let i = 0;
+    const timer = setInterval(() => {
+      let studentId = Array.from(sheet.studentsSignatures.keys())[i];
+      this.addSignature({
+        sheetId: sheet.id,
+        personId: studentId,
+        signature: 'présent',
+      });
+      if (++i == sheet.studentsSignatures.size) {
+        clearInterval(timer);
+      }
+    }, 5000);
   }
 }

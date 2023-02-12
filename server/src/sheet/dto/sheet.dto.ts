@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Signature } from '../../signature/model/signature/signature';
 import { Sheet } from '../entities/sheet.entity';
 
 export class SheetDto {
@@ -13,7 +14,7 @@ export class SheetDto {
   @ApiProperty()
   teacherId: string;
   @ApiProperty()
-  signatures: Object;
+  signatures: { [k: string]: Signature };
 
   constructor(sheet: Sheet) {
     this.id = sheet.id;
