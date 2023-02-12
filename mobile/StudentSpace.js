@@ -29,6 +29,7 @@ export default function StudentSpace({ route, navigation }){
             });
             console.log(response.data);
             alert("Feuille signée !");
+            getSheets().then(() => console.log("Sheets reloaded"));
         } catch (error) {
             console.log("Not signed: ", error);
         }
@@ -37,23 +38,33 @@ export default function StudentSpace({ route, navigation }){
         <View style={styles.container}>
             <Text style={styles.title}>Feuilles de présence disponible</Text>
             {sheets.map((sheet) => (
-                <Sheet key={sheet.id} sheet={sheet} sign={signSheet}></Sheet>
+                <Sheet key={sheet.id} sheet={sheet} studentData={studentData} sign={signSheet}></Sheet>
             ))}
         </View>
     );
 }
 
-const Sheet = ({sheet, sign}) => {
+const Sheet = ({sheet, sign, studentData}) => {
     const startDate = new Date(sheet.courseStartDate);
     const endDate = new Date(sheet.courseEndDate);
+
+    const isSigned = () => {
+        if(sheet.signatures[studentData.id].signature === "signValue"){
+            return <Text style={styles.signed}>Feuille signée</Text>
+        }else{
+            return(
+                <Button title={"Signer la feuille"} onPress={() => {
+                    sign(sheet.id);
+                }}></Button>
+            )
+        }
+    }
     return (
         <View style={styles.sheet}>
             <Text style={styles.title}>{sheet.courseLabel}</Text>
             <Text>Date du cours : {startDate.getDate()}/{startDate.getMonth()}/{startDate.getFullYear()}</Text>
             <Text>Heure du cours : {startDate.getHours()}:{startDate.getMinutes()} - {endDate.getHours()}:{endDate.getMinutes()}</Text>
-            <Button title={"Signer la feuille"} onPress={() => {
-                sign(sheet.id);
-            }}></Button>
+            {isSigned()}
         </View>
     );
 }
@@ -76,5 +87,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderWidth: 2,
         borderColor: 'black',
+    },
+    signed: {
+        color: 'white',
+        backgroundColor: 'green',
+        paddingHorizontal: 10,
+        marginTop: 10,
     }
 });
