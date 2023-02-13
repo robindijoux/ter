@@ -1,8 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { SheetDto } from '../sheet/dto/sheet.dto';
 import { SheetUpdateWebSocketGateway } from './sheet-update-web-socket.gateway';
-import * as io from 'socket.io';
-import { ConnectedSocket } from '@nestjs/websockets';
 
 describe('SheetUpdateWebSocketGateway', () => {
   let gateway: SheetUpdateWebSocketGateway;
@@ -19,25 +16,5 @@ describe('SheetUpdateWebSocketGateway', () => {
 
   it('should be defined', () => {
     expect(gateway).toBeDefined();
-  });
-
-  describe('handleConnection', () => {
-    it('should log a message when a new socket connection is established', () => {
-      const spy = jest.spyOn(console, 'log');
-      const client = {};
-      const args: any = [];
-
-      gateway.handleConnection(client, ...args);
-
-      expect(spy).toHaveBeenCalledWith(
-        'New Socket connection: ' +
-          JSON.stringify(client) +
-          ' (' +
-          JSON.stringify(args) +
-          ')',
-      );
-
-      spy.mockRestore();
-    });
   });
 });

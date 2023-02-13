@@ -35,13 +35,26 @@ const Attendance = ({ navigation, route }) => {
       });
   };
 
+  const resumeAttendance = () => {
+    console.log(`${BASE_URL}/sheet/attendanceResume/${sheet.id}`);
+    axios
+      .post(BASE_URL + "/sheet/" + sheet.id + "/attendanceResume", null)
+      .then((r) => {
+        setReadyToSign(false);
+        console.log(r);
+      })
+      .catch((e) => {
+        console.log(e);
+      });
+  };
+
   const signSheet = () => {
     console.log(`${BASE_URL}/signature`);
     axios
       .post(BASE_URL + "/signature", {
         personId: teacherData.id,
         sheetId: sheet.id,
-        signature: teacherData.name,
+        signature: "j'ai signé",
       })
       .then((r) => {
         navigation.navigate("SheetCreation", { userData: teacherData });
@@ -157,11 +170,18 @@ const Attendance = ({ navigation, route }) => {
             />
           )}
           {readyToSign && (
-            <Button
-              onPress={signSheet}
-              title="Sign sheet"
-              accessibilityLabel="Sign sheet"
-            />
+            <Fragment>
+              <Button
+                onPress={signSheet}
+                title="Sign sheet"
+                accessibilityLabel="Sign sheet"
+              />
+              <Button
+                onPress={resumeAttendance}
+                title="Resume Attendance"
+                accessibilityLabel="Resume Attendance"
+              />
+            </Fragment>
           )}
         </Fragment>
       )}

@@ -98,4 +98,22 @@ export class SheetController {
     }
     return { message: 'Attendance successfully stopped' };
   }
+
+  @Post(':id/attendanceResume')
+  @ApiOperation({
+    summary:
+      'Resume the attendance. The next students signatures will be authorized.',
+  })
+  @ApiNotFoundResponse({ description: 'Sheet not found' })
+  @ApiCreatedResponse({ description: 'Attendance successfully resumed' })
+  resumeAttendance(@Param('id') id: string) {
+    let res = this.sheetService.resumeAttendance(id);
+    if (res === undefined) {
+      throw new HttpException(
+        'Sheet ' + id + ' not found.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    return { message: 'Attendance successfully resumed' };
+  }
 }
