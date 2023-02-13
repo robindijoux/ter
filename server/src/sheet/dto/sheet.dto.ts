@@ -15,6 +15,8 @@ export class SheetDto {
   teacherId: string;
   @ApiProperty()
   signatures: { [k: string]: Signature };
+  @ApiProperty()
+  teacherSignature: Signature;
 
   constructor(sheet: Sheet) {
     this.id = sheet.id;
@@ -23,5 +25,6 @@ export class SheetDto {
     this.courseEndDate = sheet.courseEndDate;
     this.teacherId = sheet.teacherId;
     this.signatures = Object.fromEntries(sheet.studentsSignatures);
+    this.teacherSignature = sheet.teacherSignature;
   }
 }

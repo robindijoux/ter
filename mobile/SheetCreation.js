@@ -52,7 +52,10 @@ export default function SheetCreation({ route, navigation }) {
       })
       .then((r) => {
         console.log(r.data);
-        navigation.navigate("Attendance", { createdSheet: r.data });
+        navigation.navigate("Attendance", {
+          createdSheet: r.data,
+          teacherData,
+        });
       });
   }
 
