@@ -18,14 +18,33 @@ const socket = io.connect(wsUrl);
 
 const Attendance = ({ navigation, route }) => {
   const [sheet, setSheet] = useState(route.params.createdSheet);
+  const [readyToSign, setReadyToSign] = useState(false);
 
-  const createdSheet = route.params.createdSheet;
+  const [teacherData, setTeacherData] = useState(route.params.teacherData);
 
   const stopAttendance = () => {
-    console.log(`${BASE_URL}/sheet/attendanceStop/${createdSheet.id}`);
+    console.log(`${BASE_URL}/sheet/attendanceStop/${sheet.id}`);
     axios
-      .post(BASE_URL + "/sheet/" + createdSheet.id + "/attendanceStop", null)
+      .post(BASE_URL + "/sheet/" + sheet.id + "/attendanceStop", null)
       .then((r) => {
+        setReadyToSign(true);
+        console.log(r);
+      })
+      .catch((e) => {
+        console.log(e);
+      });
+  };
+
+  const signSheet = () => {
+    console.log(`${BASE_URL}/signature`);
+    axios
+      .post(BASE_URL + "/signature", {
+        personId: teacherData.id,
+        sheetId: sheet.id,
+        signature: teacherData.name,
+      })
+      .then((r) => {
+        navigation.navigate("SheetCreation", { userData: teacherData });
         console.log(r);
       })
       .catch((e) => {
@@ -34,13 +53,11 @@ const Attendance = ({ navigation, route }) => {
   };
 
   useEffect(() => {
-    console.log(wsUrl);
-
     socket.on("connect", () => {
       console.log(socket.id);
     });
 
-    socket.on(createdSheet.id, (args) => {
+    socket.on(sheet.id, (args) => {
       console.log("New sheet:", args);
       setSheet(args);
     });
@@ -132,11 +149,20 @@ const Attendance = ({ navigation, route }) => {
               }}
             />
           )}
-          <Button
-            onPress={stopAttendance}
-            title="Stop Attendance"
-            accessibilityLabel="Stop Attendance"
-          />
+          {!readyToSign && (
+            <Button
+              onPress={stopAttendance}
+              title="Stop Attendance"
+              accessibilityLabel="Stop Attendance"
+            />
+          )}
+          {readyToSign && (
+            <Button
+              onPress={signSheet}
+              title="Sign sheet"
+              accessibilityLabel="Sign sheet"
+            />
+          )}
         </Fragment>
       )}
     </SafeAreaView>

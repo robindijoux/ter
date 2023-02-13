@@ -54,7 +54,7 @@ export class SheetService {
     sheets.push(newSheet);
 
     // mock signature
-    this.mockSignature(newSheet);
+    // this.mockSignature(newSheet);
 
     this.webSocket.publishSheetUpdate(newSheet.id, new SheetDto(newSheet));
     return newSheet;
@@ -84,26 +84,24 @@ export class SheetService {
 
   addSignature(signatureRequest: SignatureRequest) {
     // get the sheet
-    let sheet = this.findOne(signatureRequest.sheetId);
+    let sheet = sheets.find((sheet) => sheet.id === signatureRequest.sheetId);
     if (sheet === undefined) {
+      console.log('sheet not found');
       return false;
     }
+    // check if it's a student signature
     let target = sheet.studentsSignatures.get(signatureRequest.personId);
     if (target !== undefined) {
       // in case of student signature
       if (!sheet.isAttendanceOngoing) {
         // the attendance must be ongoing. Trigger failure.
+        console.log('attendance not ongoing');
         return false;
       }
     } else {
-      // it's not a student signature. It must be a teacher signature.
-      target = sheet.teacherSignature;
-      if (target === undefined) {
-        // it's neither a valid teacher signature or student signature. Trigger failure.
-        return false;
-      }
       // in case of teacher signature
-      else if (sheet.isAttendanceOngoing) {
+      target = sheet.teacherSignature;
+      if (sheet.isAttendanceOngoing) {
         // the attendance must be stopped. Trigger the stop.
         sheet.isAttendanceOngoing = false;
       }

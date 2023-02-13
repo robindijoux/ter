@@ -35,6 +35,8 @@ export class SignatureController {
       "Validate a signature and add it to the related sheet. It can be a student's one if the attendance is still ongoing, or a teacher's one (that will stop the attendance, if not already the case).",
   })
   sign(@Body() signatureRequest: SignatureRequest) {
+    // console.log('signature request', JSON.stringify(signatureRequest));
+
     if (this.signatureService.sign(signatureRequest)) {
       return 'Signature validated';
     }
