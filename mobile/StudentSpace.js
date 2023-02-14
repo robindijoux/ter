@@ -136,14 +136,14 @@ const Sheet = ({ sheet, sign, isSigned }) => {
         {endDate.getHours()}:{endDate.getMinutes()}
       </Text>
       <Text>Statut: {sheet.attendanceStatus}</Text>
-      {isSigned(sheet) ? (
-        <Text style={styles.signed}>Feuille signée</Text>
-      ) : (
+      {isSigned(sheet) && <Text style={styles.signed}>Feuille signée</Text>}
+      {!isSigned(sheet) && sheet.attendanceStatus !== "CLOSED" && (
         <Button
           title={"Signer la feuille"}
           onPress={() => {
             sign(sheet.id);
           }}
+          disabled={sheet.attendanceStatus !== "OPEN"}
         ></Button>
       )}
     </View>
