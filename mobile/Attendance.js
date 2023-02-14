@@ -28,7 +28,7 @@ const Attendance = ({ navigation, route }) => {
       .post(BASE_URL + "/sheet/" + sheet.id + "/attendanceStop", null)
       .then((r) => {
         setReadyToSign(true);
-        console.log(r);
+        // console.log(r);
       })
       .catch((e) => {
         console.log(e);
@@ -41,7 +41,7 @@ const Attendance = ({ navigation, route }) => {
       .post(BASE_URL + "/sheet/" + sheet.id + "/attendanceResume", null)
       .then((r) => {
         setReadyToSign(false);
-        console.log(r);
+        // console.log(r);
       })
       .catch((e) => {
         console.log(e);
@@ -58,7 +58,7 @@ const Attendance = ({ navigation, route }) => {
       })
       .then((r) => {
         navigation.navigate("SheetCreation", { userData: teacherData });
-        console.log(r);
+        // console.log(r);
       })
       .catch((e) => {
         console.log(e);
