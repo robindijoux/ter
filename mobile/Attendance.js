@@ -11,8 +11,7 @@ import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import axios from "axios";
 import { BASE_URL } from "./global";
-import NfcManager, {NfcTech, Ndef} from 'react-native-nfc-manager';
-import Toast from 'react-native-simple-toast';
+import MyNFCManager from "./MyNFCManager";
 
 
 
@@ -71,35 +70,19 @@ const Attendance = ({ navigation, route }) => {
   };
 
   //TODO: ask for NFC permission
+  //NfcManager.start() is called in MyNFCManager.js
+  //NfcManager.isSupported() is called in MyNFCManager.js
+  //NfcManager.isEnabled() is called in MyNFCManager.js
   async function writeSheetOnNfcTag() {
-    let result = false;
     setIsNFCActive(true);
-    try {
-      // STEP 1
-      //Need to request Ndef technology before writing on NFC tag
-      await NfcManager.requestTechnology(NfcTech.Ndef);
-      const bytes = Ndef.encodeMessage([Ndef.textRecord(sheet.toString())]);
-      if (bytes) {
-        await NfcManager.ndefHandler // STEP 2
-            .writeNdefMessage(bytes); // STEP 3
-        result = true;
-        Toast.show("Feuille écrite sur le tag NFC", Toast.LONG);
-      }
-    } catch (e) {
-      // console.warn("NFC error: ", e);
-      Toast.show('Réponse mock, mais voici l\'erreur : '+e, Toast.LONG);
-    } finally {
-      // STEP 4
-      await NfcManager.cancelTechnologyRequest();
-    }
-
-    return result;
+    await MyNFCManager.writeSheet(sheet.toString());
+    setIsNFCActive(false);
   }
 
   //TODO: trouver une meilleure solution pour annuler l'écriture, car pour l'instant, on a une erreur car writeSheetOnNfcTag() reste bloqué et donc génère une erreur
   async function cancelNfcWriting() {
     setIsNFCActive(false);
-    await NfcManager.cancelTechnologyRequest();
+    await MyNFCManager.cancelNfcRequest();
   }
 
   useEffect(() => {
