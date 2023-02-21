@@ -31,7 +31,11 @@ describe('SignatureService', () => {
       teacherId,
     };
     const { studentsSignatures, teacherSignature } =
-      service.generateSignatureChallenges(course, studentList, teacherId);
+      service.generateSignatureChallenges(
+        'randomSheetId',
+        studentList,
+        teacherId,
+      );
     expect(studentsSignatures.size).toBe(2);
     expect(teacherSignature).toBeDefined();
     console.log('studentsSignatures', studentsSignatures);
