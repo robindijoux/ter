@@ -14,7 +14,6 @@ let sheets: Sheet[] = [];
 @Injectable()
 export class SheetService {
   public constructor(
-    @Inject(forwardRef(() => SignatureService))
     private signatureService: SignatureService,
     private courseService: CourseService,
     private sheetUpdateWebSocket: SheetUpdateWebSocketGateway,
@@ -32,17 +31,19 @@ export class SheetService {
       return undefined;
     }
 
+    let sheetId = crypto.randomUUID();
+
     // challenges
 
     let signatures = this.signatureService.generateSignatureChallenges(
-      course,
+      sheetId,
       course.studentList,
       course.teacherId,
     );
 
     // create the new sheet
     let newSheet: Sheet = {
-      id: new Date().getTime() + '',
+      id: sheetId,
       courseLabel: course.label,
       courseStartDate: course.startDate,
       courseEndDate: course.endDate,

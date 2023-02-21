@@ -1,4 +1,4 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { SheetService } from './sheet.service';
 import { SheetController } from './sheet.controller';
 import { SignatureModule } from '../signature/signature.module';
@@ -7,7 +7,7 @@ import { SheetUpdateWebSocketGateway } from '../sheet-update-web-socket/sheet-up
 import { AttendanceStatusUpdateWebSocketGateway } from '../attendance-status-update-web-socket/attendance-status-update-web-socket.gateway';
 
 @Module({
-  imports: [forwardRef(() => SignatureModule), CourseModule],
+  imports: [SignatureModule, CourseModule],
   controllers: [SheetController],
   providers: [
     SheetService,

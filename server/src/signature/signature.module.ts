@@ -4,7 +4,7 @@ import { SignatureController } from './signature.controller';
 import { SignatureService } from './signature.service';
 
 @Module({
-  imports: [forwardRef(() => SheetModule)],
+  imports: [],
   controllers: [SignatureController],
   providers: [SignatureService],
   exports: [SignatureService],

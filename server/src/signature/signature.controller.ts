@@ -31,13 +31,12 @@ export class SignatureController {
     description: "The signature hasn't been validated.",
   })
   @ApiOperation({
-    summary:
-      "Validate a signature and add it to the related sheet. It can be a student's one if the attendance is still ongoing, or a teacher's one (that will stop the attendance, if not already the case).",
+    summary: 'Validate a signature.',
   })
   sign(@Body() signatureRequest: SignatureRequest) {
     // console.log('signature request', JSON.stringify(signatureRequest));
 
-    if (this.signatureService.sign(signatureRequest)) {
+    if (this.signatureService.isValidSignatureRequest(signatureRequest)) {
       return 'Signature validated';
     }
     throw new HttpException('Signature not validated', HttpStatus.UNAUTHORIZED);

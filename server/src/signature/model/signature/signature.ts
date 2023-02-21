@@ -6,8 +6,14 @@ export class Signature {
     required: false,
   })
   signature: string | undefined;
+  @ApiProperty({
+    type: String,
+    required: true,
+  })
+  challenge: string;
 
-  constructor() {
+  constructor(challenge: string) {
     this.signature = undefined;
+    this.challenge = challenge;
   }
 }
