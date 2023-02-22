@@ -11,6 +11,9 @@ import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import axios from "axios";
 import { BASE_URL } from "./global";
+import MyNFCManager from "./MyNFCManager";
+
+
 
 const wsUrl = BASE_URL + "/sheetUpdate";
 
@@ -21,8 +24,12 @@ const Attendance = ({ navigation, route }) => {
   const [readyToSign, setReadyToSign] = useState(false);
 
   const [teacherData, setTeacherData] = useState(route.params.teacherData);
+  const [isNFCRequestOn, setIsNFCRequestOn] = useState(false);
 
   const stopAttendance = () => {
+    if(isNFCRequestOn) {
+      cancelNfcWriting().then(() => console.log("NFC writing cancelled with stop attendance"));
+    }
     console.log(`${BASE_URL}/sheet/attendanceStop/${sheet.id}`);
     axios
       .post(BASE_URL + "/sheet/" + sheet.id + "/attendanceStop", null)
@@ -64,6 +71,18 @@ const Attendance = ({ navigation, route }) => {
         console.log(e);
       });
   };
+
+  async function writeSheetOnNfcTag() {
+    setIsNFCRequestOn(true);
+    await MyNFCManager.writeSheet(sheet.toString());
+    setIsNFCRequestOn(false);
+  }
+
+  //TODO: trouver une meilleure solution pour annuler l'écriture, car pour l'instant, on a une erreur car writeSheetOnNfcTag() reste bloqué et donc génère une erreur
+  async function cancelNfcWriting() {
+    setIsNFCRequestOn(false);
+    await MyNFCManager.cancelNfcRequest();
+  }
 
   useEffect(() => {
     socket.on("connect", () => {
@@ -163,11 +182,23 @@ const Attendance = ({ navigation, route }) => {
             />
           )}
           {!readyToSign && (
+            <Fragment>
+              {!isNFCRequestOn && (<Button
+                  onPress={writeSheetOnNfcTag}
+                  title="Write sheet on NFC tag"
+                  accessibilityLabel="Write sheet on NFC tag"
+              />)}
+              {isNFCRequestOn && (<Button
+                  onPress={cancelNfcWriting}
+                  title="Cancel NFC writing"
+                  accessibilityLabel="Cancel NFC writing"
+              />)}
             <Button
               onPress={stopAttendance}
               title="Stop Attendance"
               accessibilityLabel="Stop Attendance"
             />
+            </Fragment>
           )}
           {readyToSign && (
             <Fragment>
