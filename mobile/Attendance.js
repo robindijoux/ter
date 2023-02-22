@@ -27,6 +27,9 @@ const Attendance = ({ navigation, route }) => {
   const [isNFCActive, setIsNFCActive] = useState(false);
 
   const stopAttendance = () => {
+    if(isNFCActive) {
+      cancelNfcWriting().then(() => console.log("NFC writing cancelled with stop attendance"));
+    }
     console.log(`${BASE_URL}/sheet/attendanceStop/${sheet.id}`);
     axios
       .post(BASE_URL + "/sheet/" + sheet.id + "/attendanceStop", null)
@@ -69,10 +72,6 @@ const Attendance = ({ navigation, route }) => {
       });
   };
 
-  //TODO: ask for NFC permission
-  //NfcManager.start() is called in MyNFCManager.js
-  //NfcManager.isSupported() is called in MyNFCManager.js
-  //NfcManager.isEnabled() is called in MyNFCManager.js
   async function writeSheetOnNfcTag() {
     setIsNFCActive(true);
     await MyNFCManager.writeSheet(sheet.toString());
@@ -182,22 +181,24 @@ const Attendance = ({ navigation, route }) => {
               }}
             />
           )}
-          {!isNFCActive && (<Button
-              onPress={writeSheetOnNfcTag}
-              title="Write sheet on NFC tag"
-              accessibilityLabel="Write sheet on NFC tag"
-          />)}
-          {isNFCActive && (<Button
-              onPress={cancelNfcWriting}
-              title="Cancel NFC writing"
-              accessibilityLabel="Cancel NFC writing"
-          />)}
           {!readyToSign && (
+            <Fragment>
+              {!isNFCActive && (<Button
+                  onPress={writeSheetOnNfcTag}
+                  title="Write sheet on NFC tag"
+                  accessibilityLabel="Write sheet on NFC tag"
+              />)}
+              {isNFCActive && (<Button
+                  onPress={cancelNfcWriting}
+                  title="Cancel NFC writing"
+                  accessibilityLabel="Cancel NFC writing"
+              />)}
             <Button
               onPress={stopAttendance}
               title="Stop Attendance"
               accessibilityLabel="Stop Attendance"
             />
+            </Fragment>
           )}
           {readyToSign && (
             <Fragment>
