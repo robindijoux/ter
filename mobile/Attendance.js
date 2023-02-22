@@ -24,10 +24,10 @@ const Attendance = ({ navigation, route }) => {
   const [readyToSign, setReadyToSign] = useState(false);
 
   const [teacherData, setTeacherData] = useState(route.params.teacherData);
-  const [isNFCActive, setIsNFCActive] = useState(false);
+  const [isNFCRequestOn, setIsNFCRequestOn] = useState(false);
 
   const stopAttendance = () => {
-    if(isNFCActive) {
+    if(isNFCRequestOn) {
       cancelNfcWriting().then(() => console.log("NFC writing cancelled with stop attendance"));
     }
     console.log(`${BASE_URL}/sheet/attendanceStop/${sheet.id}`);
@@ -73,14 +73,14 @@ const Attendance = ({ navigation, route }) => {
   };
 
   async function writeSheetOnNfcTag() {
-    setIsNFCActive(true);
+    setIsNFCRequestOn(true);
     await MyNFCManager.writeSheet(sheet.toString());
-    setIsNFCActive(false);
+    setIsNFCRequestOn(false);
   }
 
   //TODO: trouver une meilleure solution pour annuler l'écriture, car pour l'instant, on a une erreur car writeSheetOnNfcTag() reste bloqué et donc génère une erreur
   async function cancelNfcWriting() {
-    setIsNFCActive(false);
+    setIsNFCRequestOn(false);
     await MyNFCManager.cancelNfcRequest();
   }
 
@@ -183,12 +183,12 @@ const Attendance = ({ navigation, route }) => {
           )}
           {!readyToSign && (
             <Fragment>
-              {!isNFCActive && (<Button
+              {!isNFCRequestOn && (<Button
                   onPress={writeSheetOnNfcTag}
                   title="Write sheet on NFC tag"
                   accessibilityLabel="Write sheet on NFC tag"
               />)}
-              {isNFCActive && (<Button
+              {isNFCRequestOn && (<Button
                   onPress={cancelNfcWriting}
                   title="Cancel NFC writing"
                   accessibilityLabel="Cancel NFC writing"

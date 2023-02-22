@@ -41,7 +41,7 @@ const MyNFCManager = {
                 Toast.show("Feuille écrite sur le tag NFC", {
                     duration: Toast.durations.LONG,
                 });
-                console.log("Feuille écrite sur le tag NFC");
+                console.log("Sheet written on NFC tag");
             }
         } catch (e) {
             //Return empty error when we cancel the NFC request, so we don't want to show the error
