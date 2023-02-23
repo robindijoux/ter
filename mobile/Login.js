@@ -46,6 +46,7 @@ export default function Login({ navigation }) {
           placeholder="N° étudiant ou mail"
           placeholderTextColor="#003f5c"
           onChangeText={(userId) => setUserId(userId)}
+          autoCapitalize="none"
         />
       </View>
       {/*TODO: uncomment this when the password is implemented*/}
