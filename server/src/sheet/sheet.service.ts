@@ -74,6 +74,10 @@ export class SheetService {
     return this.findAll().filter((s) => s.studentsSignatures.has(studentId));
   }
 
+  findAllByTecherId(teacherId: string) {
+    return this.findAll().filter((s) => s.teacherId === teacherId);
+  }
+
   findOne(id: string) {
     return sheets.find((sheet) => sheet.id === id);
   }

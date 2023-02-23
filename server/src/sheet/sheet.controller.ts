@@ -43,17 +43,37 @@ export class SheetController {
   @ApiQuery({
     name: 'studentId',
     type: String,
-    description: 'The target studentId',
+    description:
+      'The target studentId. If teacherId is set, this parameter is ignored.',
     required: false,
   })
-  @ApiFoundResponse({ type: [SheetDto] })
-  findAll(@Query('studentId') studentId?: string) {
-    if (studentId === undefined) {
-      return this.sheetService.findAll().map((s) => new SheetDto(s));
+  @ApiQuery({
+    name: 'teacherId',
+    type: String,
+    description:
+      'The target teacherId. If studentId is set, the studentId parameter is ignored.',
+    required: false,
+  })
+  @ApiFoundResponse({
+    type: [SheetDto],
+    description:
+      'List of sheets. If no query parameter is set, all sheets are returned.',
+  })
+  findAll(
+    @Query('studentId') studentId?: string,
+    @Query('teacherId') teacherId?: string,
+  ) {
+    if (teacherId !== undefined) {
+      return this.sheetService
+        .findAllByTecherId(teacherId)
+        .map((s) => new SheetDto(s));
     }
-    return this.sheetService
-      .findAllByStudentId(studentId)
-      .map((s) => new SheetDto(s));
+    if (studentId !== undefined) {
+      return this.sheetService
+        .findAllByStudentId(studentId)
+        .map((s) => new SheetDto(s));
+    }
+    return this.sheetService.findAll().map((s) => new SheetDto(s));
   }
 
   @Get(':id')
