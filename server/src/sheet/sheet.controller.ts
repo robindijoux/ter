@@ -21,8 +21,10 @@ import {
   ApiOperation,
   ApiQuery,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { SheetDto } from './dto/sheet.dto';
+import { EndAttendanceRequestDto } from './dto/endAttendanceRequest.dto';
 
 @Controller('sheet')
 @ApiTags('Sheet')
@@ -108,6 +110,28 @@ export class SheetController {
   @ApiCreatedResponse({ description: 'Attendance successfully resumed' })
   resumeAttendance(@Param('id') id: string) {
     let res = this.sheetService.resumeAttendance(id);
+    if (res === undefined) {
+      throw new HttpException(
+        'Sheet ' + id + ' not found.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    return { message: 'Attendance successfully resumed' };
+  }
+
+  @Post(':id/attendanceEnd')
+  @ApiOperation({
+    summary:
+      'Terminate the attendance and complete the sheet if the teacher signature is valid.',
+  })
+  @ApiNotFoundResponse({ description: 'Sheet not found' })
+  @ApiUnauthorizedResponse({ description: "Invalid teacher's Signature." })
+  @ApiCreatedResponse({ description: 'Attendance is successfully closed.' })
+  terminateAttendance(
+    @Param('id') id: string,
+    @Body() endAttendanceRequestDto: EndAttendanceRequestDto,
+  ) {
+    let res = this.sheetService.completeSheet(id, endAttendanceRequestDto);
     if (res === undefined) {
       throw new HttpException(
         'Sheet ' + id + ' not found.',

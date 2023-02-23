@@ -5,6 +5,7 @@ import { SheetUpdateWebSocketGateway } from '../sheet-update-web-socket/sheet-up
 import { SignatureRequest } from '../signature/model/signature-request/signature-request';
 import { SignatureService } from '../signature/signature.service';
 import { CreateSheetDto } from './dto/create-sheet.dto';
+import { EndAttendanceRequestDto } from './dto/endAttendanceRequest.dto';
 import { SheetDto } from './dto/sheet.dto';
 import { UpdateSheetDto } from './dto/update-sheet.dto';
 import { AttendanceStatus, Sheet } from './entities/sheet.entity';
@@ -149,6 +150,68 @@ export class SheetService {
       sheet.attendanceStatus,
     );
     return sheet;
+  }
+
+  completeSheet(
+    sheetId: string,
+    endAttendanceRequest: EndAttendanceRequestDto,
+  ) {
+    let sheet = this.findOne(sheetId);
+    if (sheet === undefined) {
+      return undefined;
+    }
+
+    // check if the teacher signature is valid
+    if (
+      !this.signatureService.isValidSignatureRequest(
+        new SignatureRequest(
+          sheet.teacherId,
+          sheetId,
+          endAttendanceRequest.teacherSignature,
+        ),
+      )
+    ) {
+      return false;
+    }
+
+    // update teacher signature
+    sheet.teacherSignature.signature = endAttendanceRequest.teacherSignature;
+
+    sheet.attendanceStatus = AttendanceStatus.CLOSED;
+
+    // for each student whitelisted by teacher, mark it as present
+    for (let studentId of endAttendanceRequest.whiteList) {
+      if (sheet.studentsSignatures.has(studentId)) {
+        sheet.studentsSignatures.get(studentId)!.signature =
+          'approved by teacher';
+      }
+
+      // remove the student from the list of students signatures to check, if it was present
+      delete endAttendanceRequest.studentsSignatures[studentId];
+    }
+
+    // for each remaining student signature, check if the signature is valid
+    for (let [studentId, signature] of Object.entries(
+      endAttendanceRequest.studentsSignatures,
+    )) {
+      if (
+        sheet.studentsSignatures.has(studentId) &&
+        this.signatureService.isValidSignatureRequest(
+          new SignatureRequest(studentId, sheetId, signature),
+        )
+      ) {
+        sheet.studentsSignatures.get(studentId)!.signature = signature;
+      }
+    }
+
+    console.log('completeSheet', JSON.stringify(sheet));
+
+    this.sheetUpdateWebSocket.publishSheetUpdate(sheet.id, new SheetDto(sheet));
+    this.attendanceStatusUpdateWebSocket.publishAttendanceStatusUpdate(
+      sheet.id,
+      sheet.attendanceStatus,
+    );
+    return true;
   }
 
   mockSignature(sheet: Sheet) {
