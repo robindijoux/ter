@@ -10,10 +10,11 @@ import {
   HttpStatus,
   Query,
 } from '@nestjs/common';
-import { SheetService } from './sheet.service';
+import { CreationErrorCode, SheetService } from './sheet.service';
 import { CreateSheetDto } from './dto/create-sheet.dto';
 import { UpdateSheetDto } from './dto/update-sheet.dto';
 import {
+  ApiConflictResponse,
   ApiCreatedResponse,
   ApiExcludeEndpoint,
   ApiFoundResponse,
@@ -25,7 +26,7 @@ import {
 } from '@nestjs/swagger';
 import { SheetDto } from './dto/sheet.dto';
 import { EndAttendanceRequestDto } from './dto/endAttendanceRequest.dto';
-import { AttendanceStatus } from './entities/sheet.entity';
+import { AttendanceStatus, Sheet } from './entities/sheet.entity';
 
 @Controller('sheet')
 @ApiTags('Sheet')
@@ -34,10 +35,15 @@ export class SheetController {
 
   @Post()
   @ApiCreatedResponse({ type: SheetDto })
+  @ApiNotFoundResponse({ description: 'Course not found' })
+  @ApiConflictResponse({ description: 'Teacher already have an attendance' })
   create(@Body() createSheetDto: CreateSheetDto) {
     let res = this.sheetService.create(createSheetDto);
-    if (res === undefined) {
-      throw new HttpException("Canno't create Sheet", HttpStatus.BAD_REQUEST);
+    if (res === CreationErrorCode.COURSE_NOT_FOUND) {
+      throw new HttpException("Can't create Sheet", HttpStatus.BAD_REQUEST);
+    }
+    if (res === CreationErrorCode.ONGOING_ATTENDANCE) {
+      throw new HttpException("Can't create Sheet", HttpStatus.CONFLICT);
     }
     return new SheetDto(res);
   }

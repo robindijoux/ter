@@ -12,6 +12,11 @@ import { AttendanceStatus, Sheet } from './entities/sheet.entity';
 
 let sheets: Sheet[] = [];
 
+export enum CreationErrorCode {
+  COURSE_NOT_FOUND,
+  ONGOING_ATTENDANCE,
+}
+
 @Injectable()
 export class SheetService {
   public constructor(
@@ -29,7 +34,20 @@ export class SheetService {
     // retrieve course information
     let course = this.courseService.findOne(createSheetDto.courseId);
     if (course === undefined) {
-      return undefined;
+      return CreationErrorCode.COURSE_NOT_FOUND;
+    }
+
+    // check if the teacher doesn't already have an attendance ongoing/interrupted
+    if (
+      this.findAllFilteredBy(undefined, course.teacherId, AttendanceStatus.OPEN)
+        .length > 0 ||
+      this.findAllFilteredBy(
+        undefined,
+        course.teacherId,
+        AttendanceStatus.INTERRUPTED,
+      ).length > 0
+    ) {
+      return CreationErrorCode.ONGOING_ATTENDANCE;
     }
 
     let sheetId = crypto.randomUUID();
