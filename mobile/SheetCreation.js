@@ -52,7 +52,7 @@ export default function SheetCreation({ route, navigation }) {
       })
       .then((r) => {
         console.log(r.data);
-        navigation.navigate("Attendance", {
+        navigation.push("Attendance", {
           createdSheet: r.data,
           teacherData,
         });

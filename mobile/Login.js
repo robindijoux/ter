@@ -21,9 +21,22 @@ export default function Login({ navigation }) {
         userId: userId,
       });
       if (r.status === 201) {
-        console.log("Authentication done : ", r.data);
-        if (r.data.isTeacher)
-          navigation.navigate("SheetCreation", { userData: r.data });
+        if (r.data.isTeacher){
+          try {
+            const response = await axios.get(
+                `${BASE_URL}/sheet`,{ params: { teacherId: r.data.id, attendanceStatus: "OPEN"} }
+            );
+            console.log("resp", response.data);
+            if(response.data.length === 1){ // if there is an open sheet
+              navigation.navigate("Attendance", { createdSheet: response.data[0], teacherData: r.data });
+            }
+            else{
+              navigation.navigate("SheetCreation", { userData: r.data });
+            }
+          } catch (error) {
+            alert("Request failed ->\n " + error);
+          }
+        }
         else navigation.navigate("StudentSpace", { userData: r.data });
       }
     } catch (error) {
