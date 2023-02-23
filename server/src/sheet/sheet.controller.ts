@@ -25,6 +25,7 @@ import {
 } from '@nestjs/swagger';
 import { SheetDto } from './dto/sheet.dto';
 import { EndAttendanceRequestDto } from './dto/endAttendanceRequest.dto';
+import { AttendanceStatus } from './entities/sheet.entity';
 
 @Controller('sheet')
 @ApiTags('Sheet')
@@ -45,15 +46,19 @@ export class SheetController {
   @ApiQuery({
     name: 'studentId',
     type: String,
-    description:
-      'The target studentId. If teacherId is set, this parameter is ignored.',
+    description: 'The studentId filter to apply.',
     required: false,
   })
   @ApiQuery({
     name: 'teacherId',
     type: String,
-    description:
-      'The target teacherId. If studentId is set, the studentId parameter is ignored.',
+    description: 'The teacherId filter to apply.',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'attendanceStatus',
+    enum: AttendanceStatus,
+    description: 'The attendance status filter to apply',
     required: false,
   })
   @ApiFoundResponse({
@@ -64,18 +69,13 @@ export class SheetController {
   findAll(
     @Query('studentId') studentId?: string,
     @Query('teacherId') teacherId?: string,
+    @Query('attendanceStatus') attendanceStatus?: AttendanceStatus,
   ) {
-    if (teacherId !== undefined) {
-      return this.sheetService
-        .findAllByTecherId(teacherId)
-        .map((s) => new SheetDto(s));
-    }
-    if (studentId !== undefined) {
-      return this.sheetService
-        .findAllByStudentId(studentId)
-        .map((s) => new SheetDto(s));
-    }
-    return this.sheetService.findAll().map((s) => new SheetDto(s));
+    return this.sheetService.findAllFilteredBy(
+      studentId,
+      teacherId,
+      attendanceStatus,
+    );
   }
 
   @Get(':id')

@@ -71,12 +71,24 @@ export class SheetService {
     return sheets;
   }
 
-  findAllByStudentId(studentId: string) {
-    return this.findAll().filter((s) => s.studentsSignatures.has(studentId));
-  }
+  findAllFilteredBy(
+    studentId: string | undefined,
+    teacherId: string | undefined,
+    attendanceStatus: AttendanceStatus | undefined,
+  ) {
+    let res = this.findAll();
+    if (studentId !== undefined) {
+      res = res.filter((s) => s.studentsSignatures.has(studentId));
+    }
+    if (teacherId !== undefined) {
+      res = res.filter((s) => s.teacherId === teacherId);
+    }
+    if (attendanceStatus !== undefined) {
+      res = res.filter((s) => s.attendanceStatus === attendanceStatus);
+    }
 
-  findAllByTecherId(teacherId: string) {
-    return this.findAll().filter((s) => s.teacherId === teacherId);
+    let dtoRes = res.map((s) => new SheetDto(s));
+    return dtoRes;
   }
 
   findOne(id: string) {
