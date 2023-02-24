@@ -49,20 +49,19 @@ const Attendance = ({ navigation, route }) => {
   };
 
   const signSheet = () => {
-    console.log(`${BASE_URL}/signature`);
     axios
-      .post(BASE_URL + "/signature", {
-        personId: teacherData.id,
-        sheetId: sheet.id,
-        signature: "j'ai signé",
-      })
-      .then((r) => {
-        navigation.navigate("SheetCreation", { userData: teacherData });
-        // console.log(r);
-      })
-      .catch((e) => {
-        console.log(e);
-      });
+        .post(BASE_URL + "/sheet/" + sheet.id + "/attendanceEnd", {
+          teacherSignature: "Teacher Signature",
+          studentsSignatures: {},
+          whiteList: [],
+        })
+        .then((r) => {
+          navigation.navigate("SheetCreation", { userData: teacherData });
+          console.log("R", r);
+        })
+        .catch((e) => {
+          console.log(e);
+        });
   };
 
   useEffect(() => {
