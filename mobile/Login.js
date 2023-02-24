@@ -24,14 +24,13 @@ export default function Login({ navigation }) {
         if (r.data.isTeacher){
           try {
             const response = await axios.get(
-                `${BASE_URL}/sheet`,{ params: { teacherId: r.data.id, attendanceStatus: "OPEN"} }
+                `${BASE_URL}/sheet`,{ params: { teacherId: r.data.id, attendanceStatus: ["OPEN", "INTERRUPTED"]} }
             );
-            console.log("resp", response.data);
             if(response.data.length > 0){ // if there is an open sheet
-              navigation.navigate("Attendance", { createdSheet: response.data[0], teacherData: r.data });
+              navigation.push("Attendance", { createdSheet: response.data[0], teacherData: r.data });
             }
             else{
-              navigation.navigate("SheetCreation", { userData: r.data });
+              navigation.push("SheetCreation", { userData: r.data });//TODO: change this push maybe
             }
           } catch (error) {
             alert("Request failed ->\n " + error);

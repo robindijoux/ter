@@ -39,12 +39,12 @@ export class SheetService {
 
     // check if the teacher doesn't already have an attendance ongoing/interrupted
     if (
-      this.findAllFilteredBy(undefined, course.teacherId, AttendanceStatus.OPEN)
+      this.findAllFilteredBy(undefined, course.teacherId, [AttendanceStatus.OPEN])
         .length > 0 ||
       this.findAllFilteredBy(
         undefined,
         course.teacherId,
-        AttendanceStatus.INTERRUPTED,
+        [AttendanceStatus.INTERRUPTED],
       ).length > 0
     ) {
       return CreationErrorCode.ONGOING_ATTENDANCE;
@@ -92,7 +92,7 @@ export class SheetService {
   findAllFilteredBy(
     studentId: string | undefined,
     teacherId: string | undefined,
-    attendanceStatus: AttendanceStatus | undefined,
+    attendanceStatus: [AttendanceStatus] | undefined,
   ) {
     let res = this.findAll();
     if (studentId !== undefined) {
@@ -102,7 +102,7 @@ export class SheetService {
       res = res.filter((s) => s.teacherId === teacherId);
     }
     if (attendanceStatus !== undefined) {
-      res = res.filter((s) => s.attendanceStatus === attendanceStatus);
+      res = res.filter((s) => attendanceStatus.includes(s.attendanceStatus));
     }
 
     let dtoRes = res.map((s) => new SheetDto(s));

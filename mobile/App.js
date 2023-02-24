@@ -18,7 +18,7 @@ export default function App() {
           <Stack.Navigator initialRouteName="Login">
             <Stack.Screen name="Login" component={Login} />
             <Stack.Screen name="SheetCreation" component={SheetCreation} options={{
-                headerTitle: "Attendance",
+                headerTitle: "SheetCreation",
                 headerTitleAlign: "center",
                 headerBackVisible: false,
             }}/>

@@ -21,10 +21,27 @@ const socket = io.connect(wsUrl);
 
 const Attendance = ({ navigation, route }) => {
   const [sheet, setSheet] = useState(route.params.createdSheet);
-  const [readyToSign, setReadyToSign] = useState(false);
+  const [readyToSign, setReadyToSign] = useState(route.params.createdSheet.attendanceStatus !== "OPEN");
 
   const [teacherData, setTeacherData] = useState(route.params.teacherData);
   const [isNFCRequestOn, setIsNFCRequestOn] = useState(false);
+
+
+  useEffect(() => {
+    socket.on("connect", () => {
+      console.log(socket.id);
+    });
+
+    socket.on(sheet.id, (args) => {
+      console.log("New sheet:", args);
+      setSheet(args);
+    });
+
+    socket.on("disconnect", () => {
+      console.log(socket.id);
+    });
+  }, []);
+
 
   const stopAttendance = () => {
     if(isNFCRequestOn) {
@@ -63,7 +80,7 @@ const Attendance = ({ navigation, route }) => {
           whiteList: [],
         })
         .then((r) => {
-          navigation.navigate("SheetCreation", { userData: teacherData });
+          navigation.push("SheetCreation", { userData: teacherData });
           console.log("R", r);
         })
         .catch((e) => {
@@ -82,21 +99,6 @@ const Attendance = ({ navigation, route }) => {
     setIsNFCRequestOn(false);
     await MyNFCManager.cancelNfcRequest();
   }
-
-  useEffect(() => {
-    socket.on("connect", () => {
-      console.log(socket.id);
-    });
-
-    socket.on(sheet.id, (args) => {
-      console.log("New sheet:", args);
-      setSheet(args);
-    });
-
-    socket.on("disconnect", () => {
-      console.log(socket.id);
-    });
-  }, []);
 
   return (
     <SafeAreaView

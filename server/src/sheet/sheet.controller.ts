@@ -64,6 +64,7 @@ export class SheetController {
   @ApiQuery({
     name: 'attendanceStatus',
     enum: AttendanceStatus,
+    isArray: true,
     description: 'The attendance status filter to apply',
     required: false,
   })
@@ -75,7 +76,7 @@ export class SheetController {
   findAll(
     @Query('studentId') studentId?: string,
     @Query('teacherId') teacherId?: string,
-    @Query('attendanceStatus') attendanceStatus?: AttendanceStatus,
+    @Query('attendanceStatus') attendanceStatus?: [AttendanceStatus],
   ) {
     return this.sheetService.findAllFilteredBy(
       studentId,
