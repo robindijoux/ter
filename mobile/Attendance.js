@@ -13,15 +13,15 @@ import axios from "axios";
 import { BASE_URL } from "./global";
 import MyNFCManager from "./MyNFCManager";
 
-
-
 const wsUrl = BASE_URL + "/sheetUpdate";
 
 const socket = io.connect(wsUrl);
 
 const Attendance = ({ navigation, route }) => {
   const [sheet, setSheet] = useState(route.params.createdSheet);
-  const [readyToSign, setReadyToSign] = useState(route.params.createdSheet.attendanceStatus !== "OPEN");
+  const [readyToSign, setReadyToSign] = useState(
+    route.params.createdSheet.attendanceStatus !== "OPEN"
+  );
 
   const [teacherData, setTeacherData] = useState(route.params.teacherData);
   const [isNFCRequestOn, setIsNFCRequestOn] = useState(false);
@@ -41,8 +41,10 @@ const Attendance = ({ navigation, route }) => {
     });
   }, []);
   const stopAttendance = () => {
-    if(isNFCRequestOn) {
-      cancelNfcWriting().then(() => console.log("NFC writing cancelled with stop attendance"));
+    if (isNFCRequestOn) {
+      cancelNfcWriting().then(() =>
+        console.log("NFC writing cancelled with stop attendance")
+      );
     }
     console.log(`${BASE_URL}/sheet/attendanceStop/${sheet.id}`);
     axios
@@ -70,20 +72,32 @@ const Attendance = ({ navigation, route }) => {
   };
 
   const signSheet = () => {
+    let body = {
+      teacherSignature: "Teacher Signature",
+      studentsSignatures: Object.fromEntries(
+        Object.entries(sheet.signatures)
+          .filter((s) => s[1].signature != null)
+          .map((s) => [s[0], s[1].signature])
+      ),
+      whiteList: [],
+    };
+    console.log("attendanceEnd body:", JSON.stringify(body, null, 2));
     axios
-        .post(BASE_URL + "/sheet/" + sheet.id + "/attendanceEnd", {
-          teacherSignature: "Teacher Signature",
-          studentsSignatures: {},
-          whiteList: [],
-        })
-        .then((r) => {
-          navigation.push("SheetCreation", { userData: teacherData });
-          console.log("R", r);
-        })
-        .catch((e) => {
-          console.log(e);
-        });
+      .post(BASE_URL + "/sheet/" + sheet.id + "/attendanceEnd", body)
+      .then((r) => {
+        navigation.push("SheetCreation", { userData: teacherData });
+        console.log("R", r);
+      })
+      .catch((e) => {
+        console.log(e);
+      });
   };
+
+  async function readSheet() {
+    let nfcSheet = await MyNFCManager.readSheet();
+    // alert(JSON.stringify(nfcSheet));
+    setSheet(nfcSheet);
+  }
 
   async function writeSheetOnNfcTag() {
     setIsNFCRequestOn(true);
@@ -180,24 +194,28 @@ const Attendance = ({ navigation, route }) => {
             />
           )}
           {/*TODO : Remove this button test*/}
-          <Button title="Read" onPress={MyNFCManager.readSheet} />
+          <Button title="Read" onPress={readSheet} />
           {!readyToSign && (
             <Fragment>
-              {!isNFCRequestOn && (<Button
+              {!isNFCRequestOn && (
+                <Button
                   onPress={writeSheetOnNfcTag}
                   title="Write sheet on NFC tag"
                   accessibilityLabel="Write sheet on NFC tag"
-              />)}
-              {isNFCRequestOn && (<Button
+                />
+              )}
+              {isNFCRequestOn && (
+                <Button
                   onPress={cancelNfcWriting}
                   title="Cancel NFC writing"
                   accessibilityLabel="Cancel NFC writing"
-              />)}
-            <Button
-              onPress={stopAttendance}
-              title="Stop Attendance"
-              accessibilityLabel="Stop Attendance"
-            />
+                />
+              )}
+              <Button
+                onPress={stopAttendance}
+                title="Stop Attendance"
+                accessibilityLabel="Stop Attendance"
+              />
             </Fragment>
           )}
           {readyToSign && (
