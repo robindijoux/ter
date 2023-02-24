@@ -12,17 +12,19 @@ import {
 import axios from "axios";
 import { BASE_URL } from "./global";
 import { io } from "socket.io-client";
+import Toast from "react-native-root-toast";
+import NfcManager from "react-native-nfc-manager";
+import MyNFCManager from "./MyNFCManager";
 
 export default function StudentSpace({ route, navigation }) {
   const wsUrl = BASE_URL + "/attendanceStatusUpdate";
   const socket = io.connect(wsUrl);
   const studentData = route.params.userData;
-  const currentTime = new Date().getTime();
-
-  let [sheets, setSheets] = useState([]);
+  let [sheet, setSheet] = useState(null);
+  let [attendanceStatus, setAttendanceStatus] = useState(null);
 
   useEffect(() => {
-    getSheets().then(() => console.log("Sheets loaded"));
+    // getSheets().then(() => console.log("Sheets loaded"));
 
     socket.on("connect", () => {
       console.log(socket.id);
@@ -33,70 +35,62 @@ export default function StudentSpace({ route, navigation }) {
     });
   }, []);
 
-  /**
-   * This useEffect is called when there is new sheets. It is used to listen to the new sheet's attendance status update
-   */
   useEffect(() => {
-    console.log("New sheets", sheets);
-    for (let sheet of sheets) {
-      // listen to the future attendance status update
-      socket.on(sheet.id, (args) => {
-        console.log("New sheet attendance update", args);
-        setSheets((prev) => {
-          return prev.map((prevSheet) => {
-            if (prevSheet.id === sheet.id) {
-              return { ...prevSheet, attendanceStatus: args };
-            } else {
-              return prevSheet;
-            }
-          });
-        });
-      });
-    }
-  }, [sheets]);
+    if(sheet === null) return;
+    setAttendanceStatus(sheet.attendanceStatus);
+    // listen to the future attendance status update
+    socket.on(sheet.id, (attendanceStatusUpdate) => {
+      console.log("New sheet attendance update", attendanceStatusUpdate);
+      setAttendanceStatus(attendanceStatusUpdate);
+    });
+  }, [sheet]);
 
-  const getSheets = async () => {
-    try {
-      const response = await axios.get(
-        `${BASE_URL}/sheet?studentId=${studentData.id}`
-      );
-      console.log(response.data);
-      setSheets(response.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  async function readSheet() {
+    const sheet = await MyNFCManager.readSheet();
+    console.log("Read sheet on Student Space", sheet);
+    setSheet(sheet);
+  }
 
+  // const getSheets = async () => {
+  //   try {
+  //     const response = await axios.get(
+  //       `${BASE_URL}/sheet?studentId=${studentData.id}`
+  //     );
+  //     console.log(response.data);
+  //     setSheets(response.data);
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
+
+  //TODO: use this function before writing the sheet on the NFC tag (signature: "présent")
   const signSheet = async (sheetId) => {
     console.log("Signing sheet n°" + sheetId);
     try {
       const response = await axios.post(`${BASE_URL}/signature`, {
         personId: studentData.id,
         sheetId: sheetId,
-        signature: "signValue",
+        signature: "présent",
       });
       console.log(response.data);
-      alert("Feuille signée !");
-      getSheets().then(() => console.log("Sheets reloaded"));
+      Toast.show("Signature validée !", {
+        duration: Toast.durations.LONG,
+      });
+      console.log("Need to send on NFC tag");
+      // getSheets().then(() => console.log("Sheets reloaded"));
     } catch (error) {
       console.log("Not signed: ", error);
     }
   };
 
-  //todo: must be replace by the server's isAttendanceOngoing attribute
-  const isAttendanceOngoing = (sheet) => {
-    return (
-      sheet.courseStartDate < currentTime && currentTime < sheet.courseEndDate
-    );
-  };
+  //TODO: add a function to update and write the sheet on the NFC tag
 
-  //todo: must be replace by the server's isAttendanceGoing attribute
-  const isAttendanceEnded = (sheet) => {
-    return currentTime > sheet.courseEndDate;
-  };
+
+
+  //TODO : add a function that process the entire signing procedure (sign the sheet, update it, write it on the NFC tag)
 
   const isSigned = (sheet) => {
-    if (sheet.signatures[studentData.id].signature === "signValue") {
+    if (sheet.signatures[studentData.id].signature === "présent") {
       return true;
     }
   };
@@ -104,23 +98,19 @@ export default function StudentSpace({ route, navigation }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Feuille de séance en cours</Text>
-      {sheets.map((sheet) => (
-        <Sheet
+      {sheet !== null && (<Sheet
           key={sheet.id}
           sheet={sheet}
+          attendanceStatus={attendanceStatus}
           sign={signSheet}
           isSigned={isSigned}
-        ></Sheet>
-      ))}
-      {/* <Text style={styles.title}>Historique des feuilles signées</Text>
-            {sheets.filter(sheet => isAttendanceEnded(sheet)).map((sheet) => (
-                <EndedSheet key={sheet.id} sheet={sheet} isSigned={isSigned}></EndedSheet>
-            ))} */}
+        ></Sheet>)}
+        <Button title={"Lire une feuille de présence"} onPress={readSheet}></Button>
     </View>
   );
 }
 
-const Sheet = ({ sheet, sign, isSigned }) => {
+const Sheet = ({ sheet, attendanceStatus, sign, isSigned }) => {
   const startDate = new Date(sheet.courseStartDate);
   const endDate = new Date(sheet.courseEndDate);
 
@@ -135,38 +125,17 @@ const Sheet = ({ sheet, sign, isSigned }) => {
         Heure du cours : {startDate.getHours()}:{startDate.getMinutes()} -{" "}
         {endDate.getHours()}:{endDate.getMinutes()}
       </Text>
-      <Text>Statut: {sheet.attendanceStatus}</Text>
+      <Text>Statut: {attendanceStatus}</Text>
       {isSigned(sheet) && <Text style={styles.signed}>Feuille signée</Text>}
-      {!isSigned(sheet) && sheet.attendanceStatus !== "CLOSED" && (
+      {!isSigned(sheet) && attendanceStatus !== "CLOSED" && (
         <Button
           title={"Signer la feuille"}
           onPress={() => {
             sign(sheet.id);
           }}
-          disabled={sheet.attendanceStatus !== "OPEN"}
+          disabled={attendanceStatus !== "OPEN"}
         ></Button>
       )}
-    </View>
-  );
-};
-
-const EndedSheet = ({ sheet, isSigned }) => {
-  const startDate = new Date(sheet.courseStartDate);
-  const endDate = new Date(sheet.courseEndDate);
-  return (
-    <View style={styles.sheet}>
-      <Text style={styles.subtitle}>{sheet.courseLabel}</Text>
-      <Text>
-        Date du cours : {startDate.getDate()}/{startDate.getMonth()}/
-        {startDate.getFullYear()}
-      </Text>
-      <Text>
-        Heure du cours : {startDate.getHours()}:{startDate.getMinutes()} -{" "}
-        {endDate.getHours()}:{endDate.getMinutes()}
-      </Text>
-      {isSigned(sheet) ? (
-        <Text style={styles.signed}>Feuille signée</Text>
-      ) : null}
     </View>
   );
 };

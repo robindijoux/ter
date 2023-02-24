@@ -20,6 +20,7 @@ export default function Login({ navigation }) {
       const r = await axios.post(`${BASE_URL}/authentication`, {
         userId: userId,
       });
+      console.log("RRRRR: ", r.data);
       if (r.status === 201) {
         if (r.data.isTeacher){
           try {

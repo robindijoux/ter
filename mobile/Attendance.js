@@ -87,7 +87,7 @@ const Attendance = ({ navigation, route }) => {
 
   async function writeSheetOnNfcTag() {
     setIsNFCRequestOn(true);
-    await MyNFCManager.writeSheet(sheet.toString());
+    await MyNFCManager.writeSheet(sheet);
     setIsNFCRequestOn(false);
   }
 
@@ -179,6 +179,8 @@ const Attendance = ({ navigation, route }) => {
               }}
             />
           )}
+          {/*TODO : Remove this button test*/}
+          <Button title="Read" onPress={MyNFCManager.readSheet} />
           {!readyToSign && (
             <Fragment>
               {!isNFCRequestOn && (<Button
