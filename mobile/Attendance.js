@@ -12,6 +12,7 @@ import { io } from "socket.io-client";
 import axios from "axios";
 import { BASE_URL } from "./global";
 import MyNFCManager from "./MyNFCManager";
+import Toast from "react-native-root-toast";
 
 const wsUrl = BASE_URL + "/sheetUpdate";
 
@@ -19,8 +20,9 @@ const socket = io.connect(wsUrl);
 
 const Attendance = ({ navigation, route }) => {
   const [sheet, setSheet] = useState(route.params.createdSheet);
-  const [readyToSign, setReadyToSign] = useState(
-    route.params.createdSheet.attendanceStatus !== "OPEN"
+  const [nfcSheet, setNfcSheet] = useState(undefined);
+  const [attendanceStatus, setAttendanceStatus] = useState(
+    route.params.createdSheet.attendanceStatus
   );
 
   const [teacherData, setTeacherData] = useState(route.params.teacherData);
@@ -50,7 +52,7 @@ const Attendance = ({ navigation, route }) => {
     axios
       .post(BASE_URL + "/sheet/" + sheet.id + "/attendanceStop", null)
       .then((r) => {
-        setReadyToSign(true);
+        setAttendanceStatus("INTERRUPTED");
         // console.log(r);
       })
       .catch((e) => {
@@ -63,7 +65,7 @@ const Attendance = ({ navigation, route }) => {
     axios
       .post(BASE_URL + "/sheet/" + sheet.id + "/attendanceResume", null)
       .then((r) => {
-        setReadyToSign(false);
+        setAttendanceStatus("OPEN");
         // console.log(r);
       })
       .catch((e) => {
@@ -72,31 +74,35 @@ const Attendance = ({ navigation, route }) => {
   };
 
   const signSheet = () => {
-    let body = {
-      teacherSignature: "Teacher Signature",
-      studentsSignatures: Object.fromEntries(
-        Object.entries(sheet.signatures)
-          .filter((s) => s[1].signature != null)
-          .map((s) => [s[0], s[1].signature])
-      ),
-      whiteList: [],
-    };
-    console.log("attendanceEnd body:", JSON.stringify(body, null, 2));
-    axios
-      .post(BASE_URL + "/sheet/" + sheet.id + "/attendanceEnd", body)
-      .then((r) => {
-        navigation.push("SheetCreation", { userData: teacherData });
-        console.log("R", r);
-      })
-      .catch((e) => {
-        console.log(e);
-      });
+    if (nfcSheet != undefined) {
+      let body = {
+        teacherSignature: "Teacher Signature",
+        studentsSignatures: Object.fromEntries(
+          Object.entries(nfcSheet.signatures)
+            .filter((s) => s[1].signature != null)
+            .map((s) => [s[0], s[1].signature])
+        ),
+        whiteList: [],
+      };
+      console.log("attendanceEnd body:", JSON.stringify(body, null, 2));
+      axios
+        .post(BASE_URL + "/sheet/" + sheet.id + "/attendanceEnd", body)
+        .then((r) => {
+          navigation.push("SheetCreation", { userData: teacherData });
+          console.log("R", r);
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    } else {
+      Toast.show("La feuille NFC n'a pas été récupérée.", Toast.durations.LONG);
+    }
   };
 
   async function readSheet() {
     let nfcSheet = await MyNFCManager.readSheet();
     // alert(JSON.stringify(nfcSheet));
-    setSheet(nfcSheet);
+    setNfcSheet(nfcSheet);
   }
 
   async function writeSheetOnNfcTag() {
@@ -163,7 +169,7 @@ const Attendance = ({ navigation, route }) => {
               marginBottom: 5,
             }}
           >
-            Student list
+            Remote student list
           </Text>
           {sheet && (
             <FlatList
@@ -193,9 +199,45 @@ const Attendance = ({ navigation, route }) => {
               }}
             />
           )}
+          <Text
+            style={{
+              fontSize: 20,
+              marginBottom: 5,
+            }}
+          >
+            NFC sheet student list
+          </Text>
+          {nfcSheet && (
+            <FlatList
+              data={Object.entries(nfcSheet.signatures)}
+              renderItem={({ item }) => {
+                return (
+                  <Text
+                    style={{
+                      backgroundColor: item[1].signature
+                        ? "#77ddaa"
+                        : "#ff6961",
+                      fontSize: 20,
+                      marginHorizontal: 5,
+                      width: "20%",
+                      textAlign: "center",
+                    }}
+                  >
+                    {item[0]}
+                  </Text>
+                );
+              }}
+              keyExtractor={(item) => item[0]}
+              ItemSeparatorComponent={() => <View style={{ height: 1 }} />}
+              numColumns={4}
+              style={{
+                width: "100%",
+              }}
+            />
+          )}
           {/*TODO : Remove this button test*/}
           <Button title="Read" onPress={readSheet} />
-          {!readyToSign && (
+          {attendanceStatus === "OPEN" && (
             <Fragment>
               {!isNFCRequestOn && (
                 <Button
@@ -218,18 +260,20 @@ const Attendance = ({ navigation, route }) => {
               />
             </Fragment>
           )}
-          {readyToSign && (
+          {attendanceStatus === "INTERRUPTED" && (
             <Fragment>
-              <Button
-                onPress={signSheet}
-                title="Sign sheet"
-                accessibilityLabel="Sign sheet"
-              />
               <Button
                 onPress={resumeAttendance}
                 title="Resume Attendance"
                 accessibilityLabel="Resume Attendance"
               />
+              {nfcSheet && (
+                <Button
+                  onPress={signSheet}
+                  title="Sign sheet"
+                  accessibilityLabel="Sign sheet"
+                />
+              )}
             </Fragment>
           )}
         </Fragment>
