@@ -82,6 +82,7 @@ const MyNFCManager = {
                 });
                 console.log("NFC write error -> ", e);
             }
+            throw e;
         } finally {
             // STEP 4
             await NfcManager.cancelTechnologyRequest();

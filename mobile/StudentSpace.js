@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
+  Alert,
   Button,
   Image,
   Platform,
@@ -22,10 +23,10 @@ export default function StudentSpace({ route, navigation }) {
   const studentData = route.params.userData;
   let [sheet, setSheet] = useState(null);
   let [attendanceStatus, setAttendanceStatus] = useState(null);
+  let [isNFCRequestOn, setIsNFCRequestOn] = useState(false);
+  let [isSheetSigned, setIsSheetSigned] = useState(false);
 
   useEffect(() => {
-    // getSheets().then(() => console.log("Sheets loaded"));
-
     socket.on("connect", () => {
       console.log(socket.id);
     });
@@ -45,55 +46,48 @@ export default function StudentSpace({ route, navigation }) {
     });
   }, [sheet]);
 
+  //TODO: handle NFC reading state
   async function readSheet() {
     const sheet = await MyNFCManager.readSheet();
-    console.log("Read sheet on Student Space", sheet);
     setSheet(sheet);
   }
 
-  // const getSheets = async () => {
-  //   try {
-  //     const response = await axios.get(
-  //       `${BASE_URL}/sheet?studentId=${studentData.id}`
-  //     );
-  //     console.log(response.data);
-  //     setSheets(response.data);
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // };
-
-  //TODO: use this function before writing the sheet on the NFC tag (signature: "présent")
-  const signSheet = async (sheetId) => {
-    console.log("Signing sheet n°" + sheetId);
+  //TODO: use this function before writing the sheet on the NFC tag (signature: "present")
+  const verifySignature = async (sheetId) => {
+    console.log("Verify signature for sheet n°" + sheetId);
     try {
       const response = await axios.post(`${BASE_URL}/signature`, {
         personId: studentData.id,
         sheetId: sheetId,
-        signature: "présent",
+        signature: "present",
       });
-      console.log(response.data);
       Toast.show("Signature validée !", {
         duration: Toast.durations.LONG,
       });
-      console.log("Need to send on NFC tag");
-      // getSheets().then(() => console.log("Sheets reloaded"));
+      setIsSheetSigned(true);
     } catch (error) {
       console.log("Not signed: ", error);
     }
   };
 
   //TODO: add a function to update and write the sheet on the NFC tag
-
-
+  async function writeSheetOnNfcTag() {
+    sheet.signatures[studentData.id].signature = "present";
+    setIsNFCRequestOn(true);
+    try{
+      await MyNFCManager.writeSheet(sheet);
+    } catch (error) {
+      setIsSheetSigned(false);
+    }
+    setIsNFCRequestOn(false);
+  }
 
   //TODO : add a function that process the entire signing procedure (sign the sheet, update it, write it on the NFC tag)
-
-  const isSigned = (sheet) => {
-    if (sheet.signatures[studentData.id].signature === "présent") {
-      return true;
-    }
-  };
+  const signSheet = async () => {
+    await verifySignature(sheet.id);
+    Toast.show("Signature validée ! Veuillez vous approchez du tag", {duration: Toast.durations.LONG,});
+    await writeSheetOnNfcTag();
+  }
 
   return (
     <View style={styles.container}>
@@ -103,14 +97,14 @@ export default function StudentSpace({ route, navigation }) {
           sheet={sheet}
           attendanceStatus={attendanceStatus}
           sign={signSheet}
-          isSigned={isSigned}
+          isSigned={isSheetSigned}
         ></Sheet>)}
         <Button title={"Lire une feuille de présence"} onPress={readSheet}></Button>
     </View>
   );
 }
 
-const Sheet = ({ sheet, attendanceStatus, sign, isSigned }) => {
+const Sheet = ({ sheet, attendanceStatus, sign, isSigned}) => {
   const startDate = new Date(sheet.courseStartDate);
   const endDate = new Date(sheet.courseEndDate);
 
@@ -126,12 +120,12 @@ const Sheet = ({ sheet, attendanceStatus, sign, isSigned }) => {
         {endDate.getHours()}:{endDate.getMinutes()}
       </Text>
       <Text>Statut: {attendanceStatus}</Text>
-      {isSigned(sheet) && <Text style={styles.signed}>Feuille signée</Text>}
-      {!isSigned(sheet) && attendanceStatus !== "CLOSED" && (
+      {isSigned && <Text style={styles.signed}>Feuille signée</Text>}
+      {!isSigned && attendanceStatus !== "CLOSED" && (
         <Button
           title={"Signer la feuille"}
           onPress={() => {
-            sign(sheet.id);
+            sign();
           }}
           disabled={attendanceStatus !== "OPEN"}
         ></Button>
@@ -139,6 +133,7 @@ const Sheet = ({ sheet, attendanceStatus, sign, isSigned }) => {
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {
