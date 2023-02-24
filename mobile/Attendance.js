@@ -75,7 +75,7 @@ const Attendance = ({ navigation, route }) => {
   };
 
   const signSheet = () => {
-    if (nfcSheet != undefined) {
+    if (nfcSheet !== undefined) {
       let body = {
         teacherSignature: "Teacher Signature",
         studentsSignatures: Object.fromEntries(
@@ -96,7 +96,7 @@ const Attendance = ({ navigation, route }) => {
           console.log(e);
         });
     } else {
-      Toast.show("La feuille NFC n'a pas été récupérée.", Toast.durations.LONG);
+      Toast.show("La feuille NFC n'a pas été récupérée.", {duration: Toast.durations.LONG});
     }
   };
 
@@ -170,7 +170,7 @@ const Attendance = ({ navigation, route }) => {
             ).map((s) => [
               s[0],
               s[1].signature != null,
-              nfcSheet != undefined
+              nfcSheet !== undefined
                 ? nfcSheet.signatures[s[0]].signature != null
                 : null,
             ])}
