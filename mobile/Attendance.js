@@ -13,6 +13,7 @@ import axios from "axios";
 import { BASE_URL } from "./global";
 import MyNFCManager from "./MyNFCManager";
 import Toast from "react-native-root-toast";
+import StudentTable from "./StudentTable";
 
 const wsUrl = BASE_URL + "/sheetUpdate";
 
@@ -53,7 +54,7 @@ const Attendance = ({ navigation, route }) => {
       .post(BASE_URL + "/sheet/" + sheet.id + "/attendanceStop", null)
       .then((r) => {
         setAttendanceStatus("INTERRUPTED");
-        // console.log(r);
+        console.log(r);
       })
       .catch((e) => {
         console.log(e);
@@ -66,7 +67,7 @@ const Attendance = ({ navigation, route }) => {
       .post(BASE_URL + "/sheet/" + sheet.id + "/attendanceResume", null)
       .then((r) => {
         setAttendanceStatus("OPEN");
-        // console.log(r);
+        console.log(r);
       })
       .catch((e) => {
         console.log(e);
@@ -147,7 +148,7 @@ const Attendance = ({ navigation, route }) => {
         </Fragment>
       )}
       {sheet && (
-        <Fragment>
+        <View>
           <Text
             style={{
               fontSize: 25,
@@ -163,7 +164,18 @@ const Attendance = ({ navigation, route }) => {
               {sheet ? sheet.courseLabel : "..."}
             </Text>
           </Text>
-          <Text
+          <StudentTable
+            studentAndRemoteSignatureAndNfcSignatureList={Object.entries(
+              sheet.signatures
+            ).map((s) => [
+              s[0],
+              s[1].signature != null,
+              nfcSheet != undefined
+                ? nfcSheet.signatures[s[0]].signature != null
+                : null,
+            ])}
+          />
+          {/* <Text
             style={{
               fontSize: 20,
               marginBottom: 5,
@@ -234,50 +246,51 @@ const Attendance = ({ navigation, route }) => {
                 width: "100%",
               }}
             />
-          )}
-          {/*TODO : Remove this button test*/}
-          <Button title="Read" onPress={readSheet} />
-          {attendanceStatus === "OPEN" && (
-            <Fragment>
-              {!isNFCRequestOn && (
-                <Button
-                  onPress={writeSheetOnNfcTag}
-                  title="Write sheet on NFC tag"
-                  accessibilityLabel="Write sheet on NFC tag"
-                />
-              )}
-              {isNFCRequestOn && (
-                <Button
-                  onPress={cancelNfcWriting}
-                  title="Cancel NFC writing"
-                  accessibilityLabel="Cancel NFC writing"
-                />
-              )}
-              <Button
-                onPress={stopAttendance}
-                title="Stop Attendance"
-                accessibilityLabel="Stop Attendance"
-              />
-            </Fragment>
-          )}
-          {attendanceStatus === "INTERRUPTED" && (
-            <Fragment>
-              <Button
-                onPress={resumeAttendance}
-                title="Resume Attendance"
-                accessibilityLabel="Resume Attendance"
-              />
-              {nfcSheet && (
-                <Button
-                  onPress={signSheet}
-                  title="Sign sheet"
-                  accessibilityLabel="Sign sheet"
-                />
-              )}
-            </Fragment>
-          )}
-        </Fragment>
+          )} */}
+        </View>
       )}
+      <View>
+        <Button title="Read" onPress={readSheet} />
+        {attendanceStatus === "OPEN" && (
+          <Fragment>
+            {!isNFCRequestOn && (
+              <Button
+                onPress={writeSheetOnNfcTag}
+                title="Write sheet on NFC tag"
+                accessibilityLabel="Write sheet on NFC tag"
+              />
+            )}
+            {isNFCRequestOn && (
+              <Button
+                onPress={cancelNfcWriting}
+                title="Cancel NFC writing"
+                accessibilityLabel="Cancel NFC writing"
+              />
+            )}
+            <Button
+              onPress={stopAttendance}
+              title="Stop Attendance"
+              accessibilityLabel="Stop Attendance"
+            />
+          </Fragment>
+        )}
+        {attendanceStatus === "INTERRUPTED" && (
+          <Fragment>
+            <Button
+              onPress={resumeAttendance}
+              title="Resume Attendance"
+              accessibilityLabel="Resume Attendance"
+            />
+            {nfcSheet && (
+              <Button
+                onPress={signSheet}
+                title="Sign sheet"
+                accessibilityLabel="Sign sheet"
+              />
+            )}
+          </Fragment>
+        )}
+      </View>
     </SafeAreaView>
   );
 };
