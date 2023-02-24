@@ -27,7 +27,7 @@ export default function Login({ navigation }) {
                 `${BASE_URL}/sheet`,{ params: { teacherId: r.data.id, attendanceStatus: "OPEN"} }
             );
             console.log("resp", response.data);
-            if(response.data.length === 1){ // if there is an open sheet
+            if(response.data.length > 0){ // if there is an open sheet
               navigation.navigate("Attendance", { createdSheet: response.data[0], teacherData: r.data });
             }
             else{
