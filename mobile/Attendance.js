@@ -25,7 +25,6 @@ const Attendance = ({ navigation, route }) => {
 
   const [teacherData, setTeacherData] = useState(route.params.teacherData);
   const [isNFCRequestOn, setIsNFCRequestOn] = useState(false);
-<<<<<<< Updated upstream
 
   useEffect(() => {
     socket.on("connect", () => {
@@ -41,9 +40,6 @@ const Attendance = ({ navigation, route }) => {
       console.log(socket.id);
     });
   }, []);
-=======
->>>>>>> Stashed changes
-
   const stopAttendance = () => {
     if(isNFCRequestOn) {
       cancelNfcWriting().then(() => console.log("NFC writing cancelled with stop attendance"));
@@ -94,20 +90,6 @@ const Attendance = ({ navigation, route }) => {
     await MyNFCManager.writeSheet(sheet.toString());
     setIsNFCRequestOn(false);
   }
-<<<<<<< Updated upstream
-=======
-
-  //TODO: trouver une meilleure solution pour annuler l'écriture, car pour l'instant, on a une erreur car writeSheetOnNfcTag() reste bloqué et donc génère une erreur
-  async function cancelNfcWriting() {
-    setIsNFCRequestOn(false);
-    await MyNFCManager.cancelNfcRequest();
-  }
-
-  useEffect(() => {
-    socket.on("connect", () => {
-      console.log(socket.id);
-    });
->>>>>>> Stashed changes
 
   //TODO: trouver une meilleure solution pour annuler l'écriture, car pour l'instant, on a une erreur car writeSheetOnNfcTag() reste bloqué et donc génère une erreur
   async function cancelNfcWriting() {
