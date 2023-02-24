@@ -6,9 +6,11 @@ import SheetCreation from "./SheetCreation";
 import StudentSpace from "./StudentSpace";
 import Attendance from "./Attendance";
 import { RootSiblingParent } from 'react-native-root-siblings'
+<<<<<<< Updated upstream
 import { HeaderBackButton } from '@react-navigation/elements';
 import {Button} from "react-native";
-
+=======
+>>>>>>> Stashed changes
 
 const Stack = createNativeStackNavigator();
 export default function App() {
@@ -17,6 +19,7 @@ export default function App() {
       <NavigationContainer>
           <Stack.Navigator initialRouteName="Login">
             <Stack.Screen name="Login" component={Login} />
+<<<<<<< Updated upstream
             <Stack.Screen name="SheetCreation" component={SheetCreation} options={{
                 headerTitle: "SheetCreation",
                 headerTitleAlign: "center",
@@ -28,6 +31,11 @@ export default function App() {
                   headerTitleAlign: "center",
                   headerBackVisible: false,
               }}/>
+=======
+            <Stack.Screen name="SheetCreation" component={SheetCreation} />
+            <Stack.Screen name="StudentSpace" component={StudentSpace} />
+            <Stack.Screen name="Attendance" component={Attendance} />
+>>>>>>> Stashed changes
           </Stack.Navigator>
       </NavigationContainer>
   </RootSiblingParent>
