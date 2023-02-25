@@ -28,24 +28,21 @@ const MyNFCManager = {
             await NfcManager.requestTechnology(NfcTech.Ndef);
             // the resolved tag object will contain `ndefMessage` property
             const tag = await NfcManager.getTag();
-            console.log('Tag : ', tag);
             const payload = tag.ndefMessage[0].payload.slice(3);
             Toast.show("Feuille récupérée!", {
                 duration: Toast.durations.LONG,
             });
-            console.log('Sheet read : ', String.fromCharCode(...payload));
             sheet = JSON.parse(String.fromCharCode(...payload));
         } catch (e) {
-            if (!(e.toString() === "Error")) {
+            if ((e.toString() !== "Error")) {
                 Toast.show("Oops, erreur de lecture!", {
                     duration: Toast.durations.LONG,
                 });
-                console.log("NFC read error -> ", e);
+                console.log("NFC read error : ", e);
             }
             throw e;
         } finally {
             // stop the nfc scanning
-            console.log("-----------NFC cancel finally-------------");
             await this.cancelNfcRequest();
         }
         return sheet;
@@ -65,12 +62,10 @@ const MyNFCManager = {
             if (bytes) {
                 await NfcManager.ndefHandler // STEP 2
                     .writeNdefMessage(bytes); // STEP 3
-                console.log('Data written on NFC tag');
                 result = true;
                 Toast.show("Feuille écrite sur le tag NFC", {
                     duration: Toast.durations.LONG,
                 });
-                console.log("Sheet written on NFC tag");
             }
         } catch (e) {
             //Return empty error when we cancel the NFC request, so we don't want to show the error
@@ -78,17 +73,15 @@ const MyNFCManager = {
                 Toast.show("Ecriture incomplète, veuillez attendre la confirmation avant de retirer le téléphone du tag", {
                     duration: Toast.durations.LONG,
                 });
-                console.log("NFC writing incomplete");
             } else if (!(e.toString() === "Error")) {
                 Toast.show("Erreur d'écriture", {
                     duration: Toast.durations.LONG,
                 });
-                console.log("NFC write error -> ", e);
+                console.log("NFC write error : ", e);
             }
             throw e;
         } finally {
             // STEP 4
-            console.log("-----------NFC cancel finally-------------");
             await this.cancelNfcRequest();
         }
 

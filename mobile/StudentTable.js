@@ -6,7 +6,7 @@ const StudentTable = ({ studentAndRemoteSignatureAndNfcSignatureList }) => {
   let cells = [];
 
   const getScore = (signedInRemote, signedInNfc) => {
-    if (signedInRemote != signedInNfc) {
+    if (signedInRemote !== signedInNfc) {
       return 2;
     } else if (!signedInNfc) {
       return 1;
@@ -33,10 +33,10 @@ const StudentTable = ({ studentAndRemoteSignatureAndNfcSignatureList }) => {
     signedInNfc,
   ] of studentAndRemoteSignatureAndNfcSignatureList) {
     cells.push(
-      <DataTable.Row
+      <DataTable.Row key={studentId}
         style={{
           backgroundColor:
-            signedInRemote != signedInNfc
+            signedInRemote !== signedInNfc
               ? "#ffb347"
               : signedInRemote
               ? "#77ddaa"

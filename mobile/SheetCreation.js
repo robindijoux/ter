@@ -21,37 +21,36 @@ export default function SheetCreation({ route, navigation }) {
   // Invoking get method to perform a GET request to the API
   const getCourses = async () => {
     try {
-      console.log(JSON.stringify(teacherData));
+      // console.log(JSON.stringify(teacherData));
       const response = await axios.get(
         `${BASE_URL}/course?teacherId=${teacherData.id}`
       );
-      console.log(response.data);
+      // console.log(response.data);
       setData(response.data);
     } catch (error) {
-      console.error(error);
+      console.error("getCourses error", error);
     }
   };
   useEffect(() => {
-    getCourses().then(() => console.log("Courses loaded"));
+    getCourses().then();
   }, []);
 
   //TODO: try to replace by the onChange component method
   function getSelectedCourseFromChildComponent(selectedCourseChild) {
     setSelectedCourse(selectedCourseChild);
-    console.log("Pass selected course to parent component");
-    console.log("Selected course: " + JSON.stringify(selectedCourse));
+    // console.log("Selected course: " + JSON.stringify(selectedCourse));
   }
 
   function createSheet() {
-    console.log("--- Creating sheet ---");
-    console.log("Course id : " + selectedCourse.id);
+    // console.log("--- Creating sheet ---");
+    // console.log("Course id : " + selectedCourse.id);
 
     axios
       .post(`${BASE_URL}/sheet`, {
         courseId: selectedCourse.id,
       })
       .then((r) => {
-        console.log(r.data);
+        // console.log(r.data);
         navigation.push("Attendance", {
           createdSheet: r.data,
           teacherData,
@@ -127,45 +126,10 @@ const DropdownComponent = (props) => {
   );
 };
 
-// const DatePicker = props => {
-//     const [date, setDate] = useState(new Date());
-//     const [mode, setMode] = useState('time');
-//     const [show, setShow] = useState(false);
-//     const [title, setTitle] = useState("Heure");
-//     const onChange = (event, selectedDate) => {
-//         const currentDate = selectedDate;
-//         setShow(false);
-//         setDate(currentDate);
-//     };
-//     const showTimepicker = () => {
-//         setShow(true);
-//     }
-//
-//     useEffect(() => {
-//         props.pass(date);
-//     }, [date]);
-//
-//     return (
-//         <View>
-//             <Button onPress={showTimepicker} title={props.title} />
-//             <Text>selected: {date.toLocaleString()}</Text>
-//             {show && (
-//                 <DateTimePicker
-//                     testID="dateTimePicker"
-//                     value={date}
-//                     mode={mode}
-//                     is24Hour={true}
-//                     onChange={onChange}
-//                 />
-//             )}
-//         </View>
-//     );
-// };
 
 const styles = StyleSheet.create({
   display: {
     alignItems: "center",
-    // justifyContent: 'center',
     backgroundColor: "white",
     borderWidth: 2,
     borderColor: "black",

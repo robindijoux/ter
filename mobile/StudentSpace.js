@@ -29,11 +29,11 @@ export default function StudentSpace({ route, navigation }) {
 
   useEffect(() => {
     socket.on("connect", () => {
-      console.log(socket.id);
+      // console.log("Connect on socket ID: ", socket.id);
     });
 
     socket.on("disconnect", () => {
-      console.log(socket.id);
+      // console.log("Disconnect on socket ID: ", socket.id);
     });
   }, []);
 
@@ -42,7 +42,7 @@ export default function StudentSpace({ route, navigation }) {
     setAttendanceStatus(sheet.attendanceStatus);
     // listen to the future attendance status update
     socket.on(sheet.id, (attendanceStatusUpdate) => {
-      console.log("New sheet attendance update", attendanceStatusUpdate);
+      // console.log("New sheet attendance update", attendanceStatusUpdate);
       setAttendanceStatus(attendanceStatusUpdate);
     });
   }, [sheet]);
@@ -55,20 +55,20 @@ export default function StudentSpace({ route, navigation }) {
       setSheet(sheet);
     }
     catch(e) {
-      console.log("Error while reading sheet on NFC tag", e);
       setIsNFCRequestOn(false);
     }
   }
 
-  //TODO: use this function before writing the sheet on the NFC tag (signature: "present")
   const verifySignature = async (sheetId) => {
-    console.log("Verify signature for sheet n°" + sheetId);
+    // console.log("Verify signature for sheet n°" + sheetId);
     try {
       const response = await axios.post(`${BASE_URL}/signature`, {
         personId: studentData.id,
         sheetId: sheetId,
         signature: "present",
       });
+      //TODO: verify the response of the server (signature valid or not)
+      console.log("Signature validée !", response.data);
       Toast.show("Signature validée !", {
         duration: Toast.durations.LONG,
       });
@@ -78,7 +78,6 @@ export default function StudentSpace({ route, navigation }) {
     }
   };
 
-  //TODO: add a function to update and write the sheet on the NFC tag
   async function writeSheetOnNfcTag() {
     sheet.signatures[studentData.id].signature = "present";
     try{
@@ -87,13 +86,11 @@ export default function StudentSpace({ route, navigation }) {
       setIsNFCRequestOn(false);
     }
     catch(e) {
-      console.log("Error while writing sheet on NFC tag", e);
       setIsSheetSigned(false);
       setIsNFCRequestOn(false);
     }
   }
 
-  //TODO : add a function that process the entire signing procedure (sign the sheet, update it, write it on the NFC tag)
   const signSheet = async () => {
     await verifySignature(sheet.id);
     Toast.show("Signature validée ! Veuillez vous approchez du tag", {duration: Toast.durations.LONG,});

@@ -32,41 +32,40 @@ const Attendance = ({ navigation, route }) => {
 
   useEffect(() => {
     socket.on("connect", () => {
-      console.log(socket.id);
+      // console.log("Connect on socket ID: ", socket.id);
     });
 
     socket.on(sheet.id, (args) => {
-      console.log("New sheet:", args);
+      // console.log("New sheet:", args);
       setSheet(args);
     });
 
     socket.on("disconnect", () => {
-      console.log(socket.id);
+      // console.log("Disconnect on socket ID: ",socket.id);
     });
   }, []);
   const stopAttendance = () => {
-    console.log(`${BASE_URL}/sheet/attendanceStop/${sheet.id}`);
+    // console.log(`${BASE_URL}/sheet/attendanceStop/${sheet.id}`);
     axios
       .post(BASE_URL + "/sheet/" + sheet.id + "/attendanceStop", null)
       .then((r) => {
         setAttendanceStatus("INTERRUPTED");
-        console.log(r);
+        // console.log(r);
       })
       .catch((e) => {
-        console.log(e);
+        console.log("Stop attendance error: ", e);
       });
   };
 
   const resumeAttendance = () => {
-    console.log(`${BASE_URL}/sheet/attendanceResume/${sheet.id}`);
+    // console.log(`${BASE_URL}/sheet/attendanceResume/${sheet.id}`);
     axios
       .post(BASE_URL + "/sheet/" + sheet.id + "/attendanceResume", null)
       .then((r) => {
         setAttendanceStatus("OPEN");
-        console.log(r);
       })
       .catch((e) => {
-        console.log(e);
+        console.log("Resume attendance error: ", e);
       });
   };
 
@@ -81,15 +80,14 @@ const Attendance = ({ navigation, route }) => {
         ),
         whiteList: [],
       };
-      console.log("attendanceEnd body:", JSON.stringify(body, null, 2));
+      // console.log("attendanceEnd body:", JSON.stringify(body, null, 2));
       axios
         .post(BASE_URL + "/sheet/" + sheet.id + "/attendanceEnd", body)
         .then((r) => {
           navigation.push("SheetCreation", { userData: teacherData });
-          console.log("R", r);
         })
         .catch((e) => {
-          console.log(e);
+          console.log("Sign sheet error", e);
         });
     } else {
       Toast.show("La feuille NFC n'a pas été récupérée.", {duration: Toast.durations.LONG});
@@ -104,7 +102,6 @@ const Attendance = ({ navigation, route }) => {
           if(nfcSheet !== undefined) setNfcSheet(nfcSheet);
       }
       catch(e) {
-          console.log("Error while reading sheet on NFC tag", e);
           setIsNFCRequestOn(false);
       }
   }
@@ -116,7 +113,6 @@ const Attendance = ({ navigation, route }) => {
       setIsNFCRequestOn(false);
     }
     catch(e) {
-        console.log("Error while writing sheet on NFC tag", e);
         setIsNFCRequestOn(false);
     }
   }
@@ -178,84 +174,10 @@ const Attendance = ({ navigation, route }) => {
                 : null,
             ])}
           />
-          {/* <Text
-            style={{
-              fontSize: 20,
-              marginBottom: 5,
-            }}
-          >
-            Remote student list
-          </Text>
-          {sheet && (
-            <FlatList
-              data={Object.entries(sheet.signatures)}
-              renderItem={({ item }) => {
-                return (
-                  <Text
-                    style={{
-                      backgroundColor: item[1].signature
-                        ? "#77ddaa"
-                        : "#ff6961",
-                      fontSize: 20,
-                      marginHorizontal: 5,
-                      width: "20%",
-                      textAlign: "center",
-                    }}
-                  >
-                    {item[0]}
-                  </Text>
-                );
-              }}
-              keyExtractor={(item) => item[0]}
-              ItemSeparatorComponent={() => <View style={{ height: 1 }} />}
-              numColumns={4}
-              style={{
-                width: "100%",
-              }}
-            />
-          )}
-<<<<<<< Updated upstream
-          <Text
-            style={{
-              fontSize: 20,
-              marginBottom: 5,
-            }}
-          >
-            NFC sheet student list
-          </Text>
-          {nfcSheet && (
-            <FlatList
-              data={Object.entries(nfcSheet.signatures)}
-              renderItem={({ item }) => {
-                return (
-                  <Text
-                    style={{
-                      backgroundColor: item[1].signature
-                        ? "#77ddaa"
-                        : "#ff6961",
-                      fontSize: 20,
-                      marginHorizontal: 5,
-                      width: "20%",
-                      textAlign: "center",
-                    }}
-                  >
-                    {item[0]}
-                  </Text>
-                );
-              }}
-              keyExtractor={(item) => item[0]}
-              ItemSeparatorComponent={() => <View style={{ height: 1 }} />}
-              numColumns={4}
-              style={{
-                width: "100%",
-              }}
-            />
-          )} */}
         </View>
       )}
       <View>
           <NFCModal isModalVisible={isNFCRequestOn} setModalVisible={setIsNFCRequestOn}/>
-          <Button title="Read" onPress={readSheetOnNfcTag} />
         {attendanceStatus === "OPEN" && (
           <Fragment>
               <Button
@@ -272,6 +194,7 @@ const Attendance = ({ navigation, route }) => {
         )}
         {attendanceStatus === "INTERRUPTED" && (
           <Fragment>
+            <Button title="Read" onPress={readSheetOnNfcTag} />
             <Button
               onPress={resumeAttendance}
               title="Resume Attendance"
