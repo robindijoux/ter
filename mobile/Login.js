@@ -28,10 +28,11 @@ export default function Login({ navigation }) {
                 `${BASE_URL}/sheet`,{ params: { teacherId: r.data.id, attendanceStatus: ["OPEN", "INTERRUPTED"]} }
             );
             if(response.data.length > 0){ // if there is an open sheet
+              console.log("Sheet passed through attendance component : ", response.data[0]);
               navigation.push("Attendance", { createdSheet: response.data[0], teacherData: r.data });
             }
             else{
-              navigation.push("SheetCreation", { userData: r.data });//TODO: change this push maybe
+              navigation.push("SheetCreation", { userData: r.data });
             }
           } catch (error) {
             alert("Request failed ->\n " + error);

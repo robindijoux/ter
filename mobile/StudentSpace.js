@@ -52,7 +52,10 @@ export default function StudentSpace({ route, navigation }) {
       setIsNFCRequestOn(true);
       const sheet = await MyNFCManager.readSheet();
       setIsNFCRequestOn(false);
-      setSheet(sheet);
+      if(sheet.signatures[studentData.id] !== undefined)
+        setSheet(sheet);
+      else
+        Toast.show("Vous n'êtes pas inscrit à cette feuille de présence", {duration: Toast.durations.LONG,});
     }
     catch(e) {
       setIsNFCRequestOn(false);
