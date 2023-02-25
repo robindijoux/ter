@@ -39,13 +39,12 @@ export class SheetService {
 
     // check if the teacher doesn't already have an attendance ongoing/interrupted
     if (
-      this.findAllFilteredBy(undefined, course.teacherId, [AttendanceStatus.OPEN])
-        .length > 0 ||
-      this.findAllFilteredBy(
-        undefined,
-        course.teacherId,
-        [AttendanceStatus.INTERRUPTED],
-      ).length > 0
+      this.findAllFilteredBy(undefined, course.teacherId, [
+        AttendanceStatus.OPEN,
+      ]).length > 0 ||
+      this.findAllFilteredBy(undefined, course.teacherId, [
+        AttendanceStatus.INTERRUPTED,
+      ]).length > 0
     ) {
       return CreationErrorCode.ONGOING_ATTENDANCE;
     }
@@ -78,10 +77,6 @@ export class SheetService {
     // mock signature
     // this.mockSignature(newSheet);
 
-    this.sheetUpdateWebSocket.publishSheetUpdate(
-      newSheet.id,
-      new SheetDto(newSheet),
-    );
     return newSheet;
   }
 
@@ -154,9 +149,6 @@ export class SheetService {
       sheet.teacherSignature.signature = signatureRequest.signature;
     }
 
-    // publish sheet update
-    this.sheetUpdateWebSocket.publishSheetUpdate(sheet.id, new SheetDto(sheet));
-
     return true;
   }
 
@@ -197,7 +189,7 @@ export class SheetService {
 
     // check if the teacher signature is valid
     if (
-      !this.signatureService.isValidSignatureRequest(
+      !this.signatureService.checkSignatureRequest(
         new SignatureRequest(
           sheet.teacherId,
           sheetId,
@@ -230,7 +222,7 @@ export class SheetService {
     )) {
       if (
         sheet.studentsSignatures.has(studentId) &&
-        this.signatureService.isValidSignatureRequest(
+        this.signatureService.checkSignatureRequest(
           new SignatureRequest(studentId, sheetId, signature),
         )
       ) {
@@ -240,7 +232,6 @@ export class SheetService {
 
     console.log('completeSheet', JSON.stringify(sheet));
 
-    this.sheetUpdateWebSocket.publishSheetUpdate(sheet.id, new SheetDto(sheet));
     this.attendanceStatusUpdateWebSocket.publishAttendanceStatusUpdate(
       sheet.id,
       sheet.attendanceStatus,

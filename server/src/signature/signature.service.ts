@@ -3,6 +3,7 @@ import { Course } from '../course/entities/course.entity';
 import { SignatureRequest } from './model/signature-request/signature-request';
 import { Signature } from './model/signature/signature';
 import { randomBytes } from 'crypto';
+import { SheetUpdateWebSocketGateway } from '../sheet-update-web-socket/sheet-update-web-socket.gateway';
 
 @Injectable()
 export class SignatureService {
@@ -19,7 +20,9 @@ export class SignatureService {
    */
   private publicKeyByPerson: Map<string, string> = new Map();
 
-  isValidSignatureRequest(signature: SignatureRequest) {
+  constructor(private sheetUpdateWS: SheetUpdateWebSocketGateway) {}
+
+  checkSignatureRequest(signature: SignatureRequest) {
     let foundSheet = this.signaturesBySheetAndPerson.get(signature.sheetId);
     if (!foundSheet) {
       return false;
@@ -31,6 +34,18 @@ export class SignatureService {
     }
     foundSignatureObject.signature = signature.signature;
     console.log('signature validated', this.signaturesBySheetAndPerson);
+    return true;
+  }
+
+  checkSignatureRequestAndSendUpdateMessage(signature: SignatureRequest) {
+    let res = this.checkSignatureRequest(signature);
+    if (!res) {
+      return false;
+    }
+    this.sheetUpdateWS.publishSheetUpdate(
+      signature.sheetId,
+      new Map([[signature.personId, signature.signature]]),
+    );
     return true;
   }
 

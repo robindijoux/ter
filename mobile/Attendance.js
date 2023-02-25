@@ -36,8 +36,16 @@ const Attendance = ({ navigation, route }) => {
     });
 
     socket.on(sheet.id, (args) => {
-      // console.log("New sheet:", args);
-      setSheet(args);
+      console.log("New signature:", args);
+      let [[studentId, signature]] = Object.entries(args);
+      // let studentId = Object.entries(args)[0];
+      // let signature = Object.entries(args)[1];
+      console.log("Student ID:", studentId);
+      console.log("Signature:", signature);
+      let newSheet = { ...sheet };
+      newSheet.signatures[studentId].signature = signature;
+      console.log("New sheet:", newSheet);
+      setSheet(newSheet);
     });
 
     socket.on("disconnect", () => {
@@ -90,30 +98,30 @@ const Attendance = ({ navigation, route }) => {
           console.log("Sign sheet error", e);
         });
     } else {
-      Toast.show("La feuille NFC n'a pas été récupérée.", {duration: Toast.durations.LONG});
+      Toast.show("La feuille NFC n'a pas été récupérée.", {
+        duration: Toast.durations.LONG,
+      });
     }
   };
 
   async function readSheetOnNfcTag() {
-      try{
-          setIsNFCRequestOn(true);
-          let nfcSheet = await MyNFCManager.readSheet();
-          setIsNFCRequestOn(false);
-          if(nfcSheet !== undefined) setNfcSheet(nfcSheet);
-      }
-      catch(e) {
-          setIsNFCRequestOn(false);
-      }
+    try {
+      setIsNFCRequestOn(true);
+      let nfcSheet = await MyNFCManager.readSheet();
+      setIsNFCRequestOn(false);
+      if (nfcSheet !== undefined) setNfcSheet(nfcSheet);
+    } catch (e) {
+      setIsNFCRequestOn(false);
+    }
   }
 
   async function writeSheetOnNfcTag() {
-    try{
+    try {
       setIsNFCRequestOn(true);
       await MyNFCManager.writeSheet(sheet);
       setIsNFCRequestOn(false);
-    }
-    catch(e) {
-        setIsNFCRequestOn(false);
+    } catch (e) {
+      setIsNFCRequestOn(false);
     }
   }
 
@@ -177,14 +185,17 @@ const Attendance = ({ navigation, route }) => {
         </View>
       )}
       <View>
-          <NFCModal isModalVisible={isNFCRequestOn} setModalVisible={setIsNFCRequestOn}/>
+        <NFCModal
+          isModalVisible={isNFCRequestOn}
+          setModalVisible={setIsNFCRequestOn}
+        />
         {attendanceStatus === "OPEN" && (
           <Fragment>
-              <Button
-                  onPress={writeSheetOnNfcTag}
-                  title="Write sheet on NFC tag"
-                  accessibilityLabel="Write sheet on NFC tag"
-              />
+            <Button
+              onPress={writeSheetOnNfcTag}
+              title="Write sheet on NFC tag"
+              accessibilityLabel="Write sheet on NFC tag"
+            />
             <Button
               onPress={stopAttendance}
               title="Stop Attendance"

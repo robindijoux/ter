@@ -36,7 +36,11 @@ export class SignatureController {
   sign(@Body() signatureRequest: SignatureRequest) {
     // console.log('signature request', JSON.stringify(signatureRequest));
 
-    if (this.signatureService.isValidSignatureRequest(signatureRequest)) {
+    if (
+      this.signatureService.checkSignatureRequestAndSendUpdateMessage(
+        signatureRequest,
+      )
+    ) {
       return 'Signature validated';
     }
     throw new HttpException('Signature not validated', HttpStatus.UNAUTHORIZED);

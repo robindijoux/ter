@@ -5,7 +5,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
-import { SheetDto } from '../sheet/dto/sheet.dto';
+import { Signature } from '../signature/model/signature/signature';
 
 @WebSocketGateway({
   namespace: 'sheetUpdate',
@@ -21,13 +21,19 @@ export class SheetUpdateWebSocketGateway implements OnGatewayConnection {
     // console.log('New Socket connection', client, args);
   }
 
-  publishSheetUpdate(sheetId: string, newSheet: SheetDto) {
+  publishSheetUpdate(
+    sheetId: string,
+    addedSignatureByStudentId: Map<string, string>,
+  ) {
     if (!this.server) {
       console.log('No server yet, retrying in 2s');
-      setTimeout(() => this.publishSheetUpdate(sheetId, newSheet), 2000);
+      setTimeout(
+        () => this.publishSheetUpdate(sheetId, addedSignatureByStudentId),
+        2000,
+      );
     } else {
       // console.log('Publishing sheet update:', newSheet);
-      this.server.emit(sheetId, newSheet);
+      this.server.emit(sheetId, Object.fromEntries(addedSignatureByStudentId));
     }
   }
 }
