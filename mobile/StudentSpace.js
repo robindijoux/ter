@@ -16,12 +16,13 @@ import { io } from "socket.io-client";
 import Toast from "react-native-root-toast";
 import NfcManager from "react-native-nfc-manager";
 import MyNFCManager from "./MyNFCManager";
+import NFCModal from "./NFCModal";
 
 export default function StudentSpace({ route, navigation }) {
   const wsUrl = BASE_URL + "/attendanceStatusUpdate";
   const socket = io.connect(wsUrl);
   const studentData = route.params.userData;
-  let [sheet, setSheet] = useState(null);
+  let [sheet, setSheet] = useState(undefined);
   let [attendanceStatus, setAttendanceStatus] = useState(null);
   let [isNFCRequestOn, setIsNFCRequestOn] = useState(false);
   let [isSheetSigned, setIsSheetSigned] = useState(false);
@@ -37,7 +38,7 @@ export default function StudentSpace({ route, navigation }) {
   }, []);
 
   useEffect(() => {
-    if(sheet === null) return;
+    if(sheet === undefined) return;
     setAttendanceStatus(sheet.attendanceStatus);
     // listen to the future attendance status update
     socket.on(sheet.id, (attendanceStatusUpdate) => {
@@ -46,10 +47,17 @@ export default function StudentSpace({ route, navigation }) {
     });
   }, [sheet]);
 
-  //TODO: handle NFC reading state
-  async function readSheet() {
-    const sheet = await MyNFCManager.readSheet();
-    setSheet(sheet);
+  async function readSheetNfcOnTag() {
+    try{
+      setIsNFCRequestOn(true);
+      const sheet = await MyNFCManager.readSheet();
+      setIsNFCRequestOn(false);
+      setSheet(sheet);
+    }
+    catch(e) {
+      console.log("Error while reading sheet on NFC tag", e);
+      setIsNFCRequestOn(false);
+    }
   }
 
   //TODO: use this function before writing the sheet on the NFC tag (signature: "present")
@@ -73,13 +81,16 @@ export default function StudentSpace({ route, navigation }) {
   //TODO: add a function to update and write the sheet on the NFC tag
   async function writeSheetOnNfcTag() {
     sheet.signatures[studentData.id].signature = "present";
-    setIsNFCRequestOn(true);
     try{
+      setIsNFCRequestOn(true);
       await MyNFCManager.writeSheet(sheet);
-    } catch (error) {
-      setIsSheetSigned(false);
+      setIsNFCRequestOn(false);
     }
-    setIsNFCRequestOn(false);
+    catch(e) {
+      console.log("Error while writing sheet on NFC tag", e);
+      setIsSheetSigned(false);
+      setIsNFCRequestOn(false);
+    }
   }
 
   //TODO : add a function that process the entire signing procedure (sign the sheet, update it, write it on the NFC tag)
@@ -92,14 +103,15 @@ export default function StudentSpace({ route, navigation }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Feuille de séance en cours</Text>
-      {sheet !== null && (<Sheet
+      {sheet !== undefined && (<Sheet
           key={sheet.id}
           sheet={sheet}
           attendanceStatus={attendanceStatus}
           sign={signSheet}
           isSigned={isSheetSigned}
         ></Sheet>)}
-        <Button title={"Lire une feuille de présence"} onPress={readSheet}></Button>
+        <Button title={"Lire une feuille de présence"} onPress={readSheetNfcOnTag}></Button>
+      <NFCModal isModalVisible={isNFCRequestOn} setModalVisible={setIsNFCRequestOn}/>
     </View>
   );
 }

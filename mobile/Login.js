@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import axios from "axios";
 import { BASE_URL } from "./global";
+import NFCModal from "./NFCModal";
 
 export default function Login({ navigation }) {
   const [userId, setUserId] = useState("");

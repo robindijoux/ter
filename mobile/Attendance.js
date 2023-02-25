@@ -14,6 +14,7 @@ import { BASE_URL } from "./global";
 import MyNFCManager from "./MyNFCManager";
 import Toast from "react-native-root-toast";
 import StudentTable from "./StudentTable";
+import NFCModal from "./NFCModal";
 
 const wsUrl = BASE_URL + "/sheetUpdate";
 
@@ -44,11 +45,6 @@ const Attendance = ({ navigation, route }) => {
     });
   }, []);
   const stopAttendance = () => {
-    if (isNFCRequestOn) {
-      cancelNfcWriting().then(() =>
-        console.log("NFC writing cancelled with stop attendance")
-      );
-    }
     console.log(`${BASE_URL}/sheet/attendanceStop/${sheet.id}`);
     axios
       .post(BASE_URL + "/sheet/" + sheet.id + "/attendanceStop", null)
@@ -100,22 +96,29 @@ const Attendance = ({ navigation, route }) => {
     }
   };
 
-  async function readSheet() {
-    let nfcSheet = await MyNFCManager.readSheet();
-    // alert(JSON.stringify(nfcSheet));
-    setNfcSheet(nfcSheet);
+  async function readSheetOnNfcTag() {
+      try{
+          setIsNFCRequestOn(true);
+          let nfcSheet = await MyNFCManager.readSheet();
+          setIsNFCRequestOn(false);
+          if(nfcSheet !== undefined) setNfcSheet(nfcSheet);
+      }
+      catch(e) {
+          console.log("Error while reading sheet on NFC tag", e);
+          setIsNFCRequestOn(false);
+      }
   }
 
   async function writeSheetOnNfcTag() {
-    setIsNFCRequestOn(true);
-    await MyNFCManager.writeSheet(sheet);
-    setIsNFCRequestOn(false);
-  }
-
-  //TODO: trouver une meilleure solution pour annuler l'écriture, car pour l'instant, on a une erreur car writeSheetOnNfcTag() reste bloqué et donc génère une erreur
-  async function cancelNfcWriting() {
-    setIsNFCRequestOn(false);
-    await MyNFCManager.cancelNfcRequest();
+    try{
+      setIsNFCRequestOn(true);
+      await MyNFCManager.writeSheet(sheet);
+      setIsNFCRequestOn(false);
+    }
+    catch(e) {
+        console.log("Error while writing sheet on NFC tag", e);
+        setIsNFCRequestOn(false);
+    }
   }
 
   return (
@@ -211,6 +214,7 @@ const Attendance = ({ navigation, route }) => {
               }}
             />
           )}
+<<<<<<< Updated upstream
           <Text
             style={{
               fontSize: 20,
@@ -250,23 +254,15 @@ const Attendance = ({ navigation, route }) => {
         </View>
       )}
       <View>
-        <Button title="Read" onPress={readSheet} />
+          <NFCModal isModalVisible={isNFCRequestOn} setModalVisible={setIsNFCRequestOn}/>
+          <Button title="Read" onPress={readSheetOnNfcTag} />
         {attendanceStatus === "OPEN" && (
           <Fragment>
-            {!isNFCRequestOn && (
               <Button
-                onPress={writeSheetOnNfcTag}
-                title="Write sheet on NFC tag"
-                accessibilityLabel="Write sheet on NFC tag"
+                  onPress={writeSheetOnNfcTag}
+                  title="Write sheet on NFC tag"
+                  accessibilityLabel="Write sheet on NFC tag"
               />
-            )}
-            {isNFCRequestOn && (
-              <Button
-                onPress={cancelNfcWriting}
-                title="Cancel NFC writing"
-                accessibilityLabel="Cancel NFC writing"
-              />
-            )}
             <Button
               onPress={stopAttendance}
               title="Stop Attendance"

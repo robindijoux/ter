@@ -14,7 +14,6 @@ const MyNFCManager = {
         }
         const isEnabled = await NfcManager.isEnabled();
         if (!isEnabled) {
-            //TODO: ask for NFC permission with goToNfcSetting() for Android
             Toast.show("NFC désactivé, veuillez l'activer", {
                 duration: Toast.durations.LONG,
             });
@@ -23,7 +22,7 @@ const MyNFCManager = {
         return true;
     },
     readSheet : async function () {
-        let sheet = null;
+        let sheet = undefined;
         try {
             // register for the NFC tag with NDEF in it
             await NfcManager.requestTechnology(NfcTech.Ndef);
@@ -36,14 +35,18 @@ const MyNFCManager = {
             });
             console.log('Sheet read : ', String.fromCharCode(...payload));
             sheet = JSON.parse(String.fromCharCode(...payload));
-        } catch (ex) {
-            Toast.show("Oops, erreur de lecture!", {
-                duration: Toast.durations.LONG,
-            });
-            console.log('Error : ', ex);
+        } catch (e) {
+            if (!(e.toString() === "Error")) {
+                Toast.show("Oops, erreur de lecture!", {
+                    duration: Toast.durations.LONG,
+                });
+                console.log("NFC read error -> ", e);
+            }
+            throw e;
         } finally {
             // stop the nfc scanning
-            await NfcManager.cancelTechnologyRequest();
+            console.log("-----------NFC cancel finally-------------");
+            await this.cancelNfcRequest();
         }
         return sheet;
     },
@@ -85,7 +88,8 @@ const MyNFCManager = {
             throw e;
         } finally {
             // STEP 4
-            await NfcManager.cancelTechnologyRequest();
+            console.log("-----------NFC cancel finally-------------");
+            await this.cancelNfcRequest();
         }
 
         return result;
