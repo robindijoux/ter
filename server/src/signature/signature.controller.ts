@@ -13,6 +13,8 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { SignatureBatchRequestResponse } from './model/signature-batch-request-response/signature-batch-request-response';
+import { SignatureBatchRequest } from './model/signature-batch-request/signature-batch-request';
 import { SignatureRequest } from './model/signature-request/signature-request';
 import { SignatureService } from './signature.service';
 
@@ -44,5 +46,22 @@ export class SignatureController {
       return 'Signature validated';
     }
     throw new HttpException('Signature not validated', HttpStatus.UNAUTHORIZED);
+  }
+
+  @Post('batch')
+  @ApiOperation({
+    summary: 'Validate a batch of signatures.',
+    description:
+      "Send a batch of signatures to validate. Returns a list of id's that suceeded, those who didn't and those who weren't in the request but that previously asked server to sign the sheet.",
+  })
+  @ApiCreatedResponse({
+    type: SignatureBatchRequestResponse,
+    description:
+      "A list of id's that suceeded, those who didn't and those who weren't in the request but that previously asked server to sign the sheet.",
+  })
+  batchSign(@Body() signatureRequests: SignatureBatchRequest) {
+    // console.log('signature request', JSON.stringify(signatureRequest));
+
+    return this.signatureService.checkSignatureBatchRequest(signatureRequests);
   }
 }

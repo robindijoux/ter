@@ -4,6 +4,8 @@ import { SignatureRequest } from './model/signature-request/signature-request';
 import { Signature } from './model/signature/signature';
 import { randomBytes } from 'crypto';
 import { SheetUpdateWebSocketGateway } from '../sheet-update-web-socket/sheet-update-web-socket.gateway';
+import { SignatureBatchRequest } from './model/signature-batch-request/signature-batch-request';
+import { SignatureBatchRequestResponse } from './model/signature-batch-request-response/signature-batch-request-response';
 
 @Injectable()
 export class SignatureService {
@@ -21,6 +23,33 @@ export class SignatureService {
   private publicKeyByPerson: Map<string, string> = new Map();
 
   constructor(private sheetUpdateWS: SheetUpdateWebSocketGateway) {}
+
+  checkSignatureBatchRequest(signatureBatch: SignatureBatchRequest) {
+    let res = new SignatureBatchRequestResponse();
+    let remainingSignatures = new Map<string, Signature>(
+      this.signaturesBySheetAndPerson.get(signatureBatch.sheetId),
+    );
+    for (let [personId, signature] of Object.entries(
+      signatureBatch.signatures,
+    )) {
+      remainingSignatures.delete(personId);
+      if (
+        this.checkSignatureRequest({
+          sheetId: signatureBatch.sheetId,
+          personId,
+          signature,
+        })
+      ) {
+        res.sucess.push(personId);
+      } else {
+        res.failure.push(personId);
+      }
+    }
+    for (let [personId, signature] of remainingSignatures) {
+      res.missing.push(personId);
+    }
+    return res;
+  }
 
   checkSignatureRequest(signature: SignatureRequest) {
     let foundSheet = this.signaturesBySheetAndPerson.get(signature.sheetId);
