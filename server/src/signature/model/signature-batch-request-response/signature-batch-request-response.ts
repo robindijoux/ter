@@ -16,8 +16,8 @@ export class SignatureBatchRequestResponse {
   @ApiProperty({
     type: 'array',
     description:
-      "List of id's that weren't in the request but that previously asked to sign the sheet",
+      "List of id's that weren't in the request but that previously asked server to sign the sheet, or those who were in the request but that didn't previously asked server to sign the sheet.",
     example: ['bs80'],
   })
-  missing: string[];
+  conflict: string[];
 }

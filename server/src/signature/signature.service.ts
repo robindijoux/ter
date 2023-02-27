@@ -7,6 +7,13 @@ import { SheetUpdateWebSocketGateway } from '../sheet-update-web-socket/sheet-up
 import { SignatureBatchRequest } from './model/signature-batch-request/signature-batch-request';
 import { SignatureBatchRequestResponse } from './model/signature-batch-request-response/signature-batch-request-response';
 
+export enum SIGNATURE_RESPONSE_TYPE {
+  SUCCESS = 'SUCCESS',
+  FAILURE = 'FAILURE',
+  SHEET_NOT_FOUND = 'SHEET_NOT_FOUND',
+  PERSON_NOT_FOUND = 'PERSON_NOT_FOUND',
+}
+
 @Injectable()
 export class SignatureService {
   private CHALLENGE_LENGTH_IN_BYTES = 16;
@@ -26,27 +33,41 @@ export class SignatureService {
 
   checkSignatureBatchRequest(signatureBatch: SignatureBatchRequest) {
     let res = new SignatureBatchRequestResponse();
-    let remainingSignatures = new Map<string, Signature>(
+    let remainingSignaturesOnServer = new Map<string, Signature>(
+      this.signaturesBySheetAndPerson.get(signatureBatch.sheetId),
+    );
+    let remainingSignaturesOnNfc = new Map<string, Signature>(
       this.signaturesBySheetAndPerson.get(signatureBatch.sheetId),
     );
     for (let [personId, signature] of Object.entries(
       signatureBatch.signatures,
     )) {
-      remainingSignatures.delete(personId);
-      if (
+      remainingSignaturesOnServer.delete(personId);
+      switch (
         this.checkSignatureRequest({
           sheetId: signatureBatch.sheetId,
           personId,
           signature,
         })
       ) {
-        res.sucess.push(personId);
-      } else {
-        res.failure.push(personId);
+        case SIGNATURE_RESPONSE_TYPE.SUCCESS:
+          res.sucess.push(personId);
+          break;
+        case SIGNATURE_RESPONSE_TYPE.FAILURE:
+          res.failure.push(personId);
+          break;
+        case SIGNATURE_RESPONSE_TYPE.PERSON_NOT_FOUND:
+          res.conflict.push(personId);
+          break;
+        case SIGNATURE_RESPONSE_TYPE.SHEET_NOT_FOUND:
+          return SIGNATURE_RESPONSE_TYPE.SHEET_NOT_FOUND;
+        default:
+          return SIGNATURE_RESPONSE_TYPE.FAILURE;
+          break;
       }
     }
-    for (let [personId, signature] of remainingSignatures) {
-      res.missing.push(personId);
+    for (let [personId, signature] of remainingSignaturesOnServer) {
+      res.conflict.push(personId);
     }
     return res;
   }
@@ -54,28 +75,39 @@ export class SignatureService {
   checkSignatureRequest(signature: SignatureRequest) {
     let foundSheet = this.signaturesBySheetAndPerson.get(signature.sheetId);
     if (!foundSheet) {
-      return false;
+      return SIGNATURE_RESPONSE_TYPE.SHEET_NOT_FOUND;
     }
     let foundSignatureObject = foundSheet.get(signature.personId);
-    // TODO here will be the cryptographic check, using the public key of the person and the challenge
     if (!foundSignatureObject) {
-      return false;
+      return SIGNATURE_RESPONSE_TYPE.PERSON_NOT_FOUND;
+    }
+    let publicKey = this.publicKeyByPerson.get(signature.personId);
+    if (!publicKey) {
+      return SIGNATURE_RESPONSE_TYPE.PERSON_NOT_FOUND;
+    }
+    if (
+      !this.verifyCryptoSignature(
+        signature.signature,
+        foundSignatureObject.challenge,
+        publicKey,
+      )
+    ) {
+      return SIGNATURE_RESPONSE_TYPE.FAILURE;
     }
     foundSignatureObject.signature = signature.signature;
     console.log('signature validated', this.signaturesBySheetAndPerson);
-    return true;
+    return SIGNATURE_RESPONSE_TYPE.SUCCESS;
   }
 
   checkSignatureRequestAndSendUpdateMessage(signature: SignatureRequest) {
     let res = this.checkSignatureRequest(signature);
-    if (!res) {
-      return false;
+    if (res === SIGNATURE_RESPONSE_TYPE.SUCCESS) {
+      this.sheetUpdateWS.publishSheetUpdate(
+        signature.sheetId,
+        new Map([[signature.personId, signature.signature]]),
+      );
     }
-    this.sheetUpdateWS.publishSheetUpdate(
-      signature.sheetId,
-      new Map([[signature.personId, signature.signature]]),
-    );
-    return true;
+    return res;
   }
 
   generateSignatureChallenges(
@@ -111,5 +143,14 @@ export class SignatureService {
    */
   private generateChallenge() {
     return randomBytes(this.CHALLENGE_LENGTH_IN_BYTES).toString('hex');
+  }
+
+  private verifyCryptoSignature(
+    signature: string,
+    challenge: string,
+    publicKey: string,
+  ) {
+    // TODO
+    return true;
   }
 }
