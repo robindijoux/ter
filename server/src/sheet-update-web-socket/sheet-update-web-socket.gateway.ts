@@ -32,7 +32,10 @@ export class SheetUpdateWebSocketGateway implements OnGatewayConnection {
         2000,
       );
     } else {
-      // console.log('Publishing sheet update:', newSheet);
+      console.log(
+        'Publishing sheet update:',
+        Object.fromEntries(addedSignatureByStudentId),
+      );
       this.server.emit(sheetId, Object.fromEntries(addedSignatureByStudentId));
     }
   }

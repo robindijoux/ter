@@ -6,7 +6,7 @@ export class SignatureBatchRequestResponse {
     description: "List of id's that suceeded",
     example: ['dr80'],
   })
-  sucess: string[];
+  success: string[];
   @ApiProperty({
     type: 'array',
     description: "List of id's that didn't suceed",
@@ -20,4 +20,10 @@ export class SignatureBatchRequestResponse {
     example: ['bs80'],
   })
   conflict: string[];
+
+  constructor() {
+    this.success = [];
+    this.failure = [];
+    this.conflict = [];
+  }
 }

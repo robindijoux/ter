@@ -42,7 +42,10 @@ export class SignatureController {
   })
   sign(@Body() signatureRequest: SignatureRequest) {
     // console.log('signature request', JSON.stringify(signatureRequest));
-    let res = this.signatureService.checkSignatureRequest(signatureRequest);
+    let res =
+      this.signatureService.checkSignatureRequestAndSendUpdateMessage(
+        signatureRequest,
+      );
     switch (res) {
       case SIGNATURE_RESPONSE_TYPE.SUCCESS:
         return 'Signature validated';
@@ -51,9 +54,13 @@ export class SignatureController {
           'Signature not validated',
           HttpStatus.UNAUTHORIZED,
         );
-      case SIGNATURE_RESPONSE_TYPE.PERSON_NOT_FOUND:
+      case SIGNATURE_RESPONSE_TYPE.STUDENT_NOT_FOUND:
+        console.log('person not found');
+
         throw new HttpException('Person not found', HttpStatus.NOT_FOUND);
       case SIGNATURE_RESPONSE_TYPE.SHEET_NOT_FOUND:
+        console.log('sheet not found');
+
         throw new HttpException('Sheet not found', HttpStatus.NOT_FOUND);
       default:
         throw new HttpException(
