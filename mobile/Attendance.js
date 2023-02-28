@@ -27,13 +27,18 @@ const Attendance = ({ navigation, route }) => {
   );
   const [teacherData, setTeacherData] = useState(route.params.teacherData);
   const [isNFCRequestOn, setIsNFCRequestOn] = useState(false);
-  const [forcedList, setForcedList] = useState({});
   const [presencePreview, setPresencePreview] = useState({
     pending: [],
     present: [],
     absent: [],
     conflict: [],
   });
+  const [editable, setEditable] = useState(false);
+  const [finalAttendanceList, setFinalAttendanceList] = useState([]);
+
+  useEffect(() => {
+    console.log("parent finalAttendanceList", finalAttendanceList);
+  }, [finalAttendanceList]);
 
   useEffect(() => {
     socket.on("connect", () => {
@@ -57,10 +62,6 @@ const Attendance = ({ navigation, route }) => {
   }, []);
 
   useEffect(() => {
-    console.log("parent forcedList", forcedList);
-  }, [forcedList]);
-
-  useEffect(() => {
     console.log(
       "parent presencePreview",
       JSON.stringify(presencePreview, null, 2)
@@ -72,7 +73,6 @@ const Attendance = ({ navigation, route }) => {
 
     // set the presencePreview
     let newPresencePreview = {
-      editable: false,
       pending: Object.entries(sheet.signatures)
         .filter(([id, signature]) => signature.signature === undefined)
         .map(([id, signature]) => id),
@@ -106,7 +106,6 @@ const Attendance = ({ navigation, route }) => {
       .then((r) => {
         // console.log("NFC signatures validation result", r.data);
         let newPresencePreview = {
-          editable: true,
           pending: [],
           present: r.data.success,
           absent: [
@@ -120,6 +119,7 @@ const Attendance = ({ navigation, route }) => {
 
         // console.log("newPresencePreview", newPresencePreview);
         setPresencePreview(newPresencePreview);
+        setEditable(true);
       })
       .catch((e) => {
         console.log("NFC signatures validation error", e);
@@ -152,15 +152,15 @@ const Attendance = ({ navigation, route }) => {
   };
 
   const signSheet = () => {
-    if (nfcSheet !== undefined) {
+    if (nfcSheet !== undefined && finalAttendanceList.length > 0) {
       let body = {
         teacherSignature: "Teacher Signature",
-        studentsSignatures: Object.fromEntries(
-          Object.entries(nfcSheet.signatures)
-            .filter((s) => s[1].signature != null)
-            .map((s) => [s[0], s[1].signature])
+        studentsAttendance: Object.fromEntries(
+          finalAttendanceList.map((studentAttendance) => [
+            studentAttendance.studentId,
+            studentAttendance.isPresent,
+          ])
         ),
-        whiteList: [],
       };
       // console.log("attendanceEnd body:", JSON.stringify(body, null, 2));
       axios
@@ -248,11 +248,12 @@ const Attendance = ({ navigation, route }) => {
             </Text>
           </Text>
           <StudentTable
-            key={JSON.stringify(presencePreview)}
-            setParentForcedList={(newLists) => {
-              setForcedList(newLists);
+            key={"studentTable" + JSON.stringify(presencePreview) + editable}
+            setParentFinalAttendanceList={(newList) => {
+              setFinalAttendanceList(newList);
             }}
-            givenPresencePreview={presencePreview}
+            parentAttendancePreview={presencePreview}
+            parentEditable={editable}
           />
         </View>
       )}

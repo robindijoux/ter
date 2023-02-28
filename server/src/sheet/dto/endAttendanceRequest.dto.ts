@@ -8,18 +8,12 @@ export class EndAttendanceRequestDto {
   })
   teacherSignature: string;
   @ApiProperty({
-    description: 'The students signatures',
+    description: 'The students presence values',
     type: Object,
     example: {
-      gt: 'present',
-      dr80: 'present',
+      gt: true,
+      dr80: false,
     },
   })
-  studentsSignatures: { [key: string]: string };
-  @ApiProperty({
-    description: "List of students id's that will be marked as present",
-    type: [String],
-    example: ['newStudent803216'],
-  })
-  whiteList: string[];
+  studentsAttendance: { [key: string]: boolean };
 }

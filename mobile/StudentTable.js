@@ -8,12 +8,16 @@ const CELL_COLOR_CODE = {
   PENDING_CODE: "#999999",
 };
 
-const StudentTable = ({ setParentForcedList, givenPresencePreview }) => {
+const StudentTable = ({
+  setParentFinalAttendanceList,
+  parentAttendancePreview,
+  parentEditable,
+}) => {
   /**
    * presencePreview is a map of <studentId, cellValue>
    */
 
-  const [presencePreview, setPresencePreview] = React.useState([]);
+  const [attendancePreview, setAttendancePreview] = React.useState([]);
 
   const [editable, setEditable] = React.useState(false);
 
@@ -26,13 +30,8 @@ const StudentTable = ({ setParentForcedList, givenPresencePreview }) => {
    */
   const [tableData, setTableData] = React.useState([]);
 
-  /**
-   * forcedList is a map of <studentId, cellValue>
-   */
-  const [forcedList, setForcedList] = React.useState({});
-
   const onToggleSwitch = (studentId) => {
-    setPresencePreview((prevState) => ({
+    setAttendancePreview((prevState) => ({
       ...prevState,
       [studentId]: {
         ...prevState[studentId],
@@ -49,7 +48,8 @@ const StudentTable = ({ setParentForcedList, givenPresencePreview }) => {
   });
 
   useEffect(() => {
-    let newTableData = Object.entries(presencePreview).map(
+    console.log("child attendancePreview", attendancePreview);
+    let newTableData = Object.entries(attendancePreview).map(
       ([studentId, colorAndValue]) => ({
         studentId,
         color: colorAndValue.color,
@@ -58,28 +58,31 @@ const StudentTable = ({ setParentForcedList, givenPresencePreview }) => {
     );
     // console.log("newTableData", newTableData);
     setTableData(newTableData);
-    setEditable(givenPresencePreview.editable);
-  }, [presencePreview]);
+  }, [attendancePreview]);
 
   useEffect(() => {
     console.log("editable", editable);
   }, [editable]);
 
   useEffect(() => {
-    setParentForcedList(forcedList);
-    // console.log("child forcedList", forcedList);
-  }, [forcedList]);
+    console.log("tableData", tableData);
+    let newAttendanceList = tableData.map((row) => ({
+      studentId: row.studentId,
+      isPresent: row.switchValue,
+    }));
+    console.log("newAttendanceList", newAttendanceList);
+    setParentFinalAttendanceList(newAttendanceList);
+  }, [tableData]);
 
   useEffect(() => {
     /**
-     * newPresencePreview is a map of <studentId, {
+     * newAttendancePreview is a map of <studentId, {
      *  color,
      *  switchValue
      * }>
      */
-    let newPresencePreview = Object.fromEntries(
-      Object.entries(givenPresencePreview)
-        .filter(([key, value]) => key !== "editable")
+    let newAttendancePreview = Object.fromEntries(
+      Object.entries(parentAttendancePreview)
         .map(([key, idList]) =>
           idList.map((studentId) => {
             let color, switchValue;
@@ -111,10 +114,11 @@ const StudentTable = ({ setParentForcedList, givenPresencePreview }) => {
         .flat()
     );
     // console.log(
-    //   "newPresencePreview2",
-    //   JSON.stringify(newPresencePreview, null, 2)
+    //   "newAttendancePreview",
+    //   JSON.stringify(newAttendancePreview, null, 2)
     // );
-    setPresencePreview(newPresencePreview);
+    setAttendancePreview(newAttendancePreview);
+    setEditable(parentEditable);
   }, []);
 
   return (

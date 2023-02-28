@@ -19,6 +19,8 @@ export class SheetDto {
   teacherSignature: Signature;
   @ApiProperty({ enum: ['OPEN', 'CLOSED', 'INTERRUPTED'] })
   attendanceStatus: AttendanceStatus;
+  @ApiProperty({ type: Object, example: { gt: true, dr80: false } })
+  studentsAttendance: { [key: string]: boolean };
 
   constructor(sheet: Sheet) {
     this.id = sheet.id;
@@ -29,5 +31,6 @@ export class SheetDto {
     this.signatures = Object.fromEntries(sheet.studentsSignatures);
     this.teacherSignature = sheet.teacherSignature;
     this.attendanceStatus = sheet.attendanceStatus;
+    this.studentsAttendance = Object.fromEntries(sheet.studentsAttendance);
   }
 }

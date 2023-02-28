@@ -69,6 +69,7 @@ export class SheetService {
       studentsSignatures: signatures.studentsSignatures,
       teacherSignature: signatures.teacherSignature,
       attendanceStatus: AttendanceStatus.OPEN,
+      studentsAttendance: new Map(),
     };
 
     // store new sheet
@@ -203,32 +204,13 @@ export class SheetService {
     // update teacher signature
     sheet.teacherSignature.signature = endAttendanceRequest.teacherSignature;
 
+    // update attendance status
     sheet.attendanceStatus = AttendanceStatus.CLOSED;
 
-    // for each student whitelisted by teacher, mark it as present
-    for (let studentId of endAttendanceRequest.whiteList) {
-      if (sheet.studentsSignatures.has(studentId)) {
-        sheet.studentsSignatures.get(studentId)!.signature =
-          'approved by teacher';
-      }
-
-      // remove the student from the list of students signatures to check, if it was present
-      delete endAttendanceRequest.studentsSignatures[studentId];
-    }
-
-    // for each remaining student signature, check if the signature is valid
-    for (let [studentId, signature] of Object.entries(
-      endAttendanceRequest.studentsSignatures,
-    )) {
-      if (
-        sheet.studentsSignatures.has(studentId) &&
-        this.signatureService.checkSignatureRequest(
-          new SignatureRequest(studentId, sheetId, signature),
-        )
-      ) {
-        sheet.studentsSignatures.get(studentId)!.signature = signature;
-      }
-    }
+    // add the final attendance list
+    sheet.studentsAttendance = new Map(
+      Object.entries(endAttendanceRequest.studentsAttendance),
+    );
 
     console.log('completeSheet', JSON.stringify(sheet));
 
