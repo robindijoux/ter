@@ -38,7 +38,7 @@ export default function SheetCreation({ route, navigation }) {
   //TODO: try to replace by the onChange component method
   function getSelectedCourseFromChildComponent(selectedCourseChild) {
     setSelectedCourse(selectedCourseChild);
-    // console.log("Selected course: " + JSON.stringify(selectedCourse));
+    console.log("Selected course: " + JSON.stringify(selectedCourse));
   }
 
   function createSheet() {
@@ -125,7 +125,6 @@ const DropdownComponent = (props) => {
     </View>
   );
 };
-
 
 const styles = StyleSheet.create({
   display: {
