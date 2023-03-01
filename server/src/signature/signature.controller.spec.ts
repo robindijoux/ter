@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SignatureController } from './signature.controller';
 import { SignatureModule } from './signature.module';
+import { SignatureService } from './signature.service';
 
 describe('SignatureController', () => {
   let controller: SignatureController;

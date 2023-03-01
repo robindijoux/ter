@@ -7,4 +7,10 @@ export class SignatureRequest {
   sheetId: string;
   @ApiProperty()
   signature: string;
+
+  constructor(personId: string, sheetId: string, signature: string) {
+    this.personId = personId;
+    this.sheetId = sheetId;
+    this.signature = signature;
+  }
 }

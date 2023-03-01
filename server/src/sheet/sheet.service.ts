@@ -1,22 +1,29 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { AttendanceStatusUpdateWebSocketGateway } from '../attendance-status-update-web-socket/attendance-status-update-web-socket.gateway';
 import { CourseService } from '../course/course.service';
 import { SheetUpdateWebSocketGateway } from '../sheet-update-web-socket/sheet-update-web-socket.gateway';
 import { SignatureRequest } from '../signature/model/signature-request/signature-request';
 import { SignatureService } from '../signature/signature.service';
 import { CreateSheetDto } from './dto/create-sheet.dto';
+import { EndAttendanceRequestDto } from './dto/endAttendanceRequest.dto';
 import { SheetDto } from './dto/sheet.dto';
 import { UpdateSheetDto } from './dto/update-sheet.dto';
-import { Sheet } from './entities/sheet.entity';
+import { AttendanceStatus, Sheet } from './entities/sheet.entity';
 
 let sheets: Sheet[] = [];
+
+export enum CreationErrorCode {
+  COURSE_NOT_FOUND,
+  ONGOING_ATTENDANCE,
+}
 
 @Injectable()
 export class SheetService {
   public constructor(
-    @Inject(forwardRef(() => SignatureService))
     private signatureService: SignatureService,
     private courseService: CourseService,
-    private webSocket: SheetUpdateWebSocketGateway,
+    private sheetUpdateWebSocket: SheetUpdateWebSocketGateway,
+    private attendanceStatusUpdateWebSocket: AttendanceStatusUpdateWebSocketGateway,
   ) {
     this.create({
       courseId: '1',
@@ -27,27 +34,42 @@ export class SheetService {
     // retrieve course information
     let course = this.courseService.findOne(createSheetDto.courseId);
     if (course === undefined) {
-      return undefined;
+      return CreationErrorCode.COURSE_NOT_FOUND;
     }
+
+    // check if the teacher doesn't already have an attendance ongoing/interrupted
+    if (
+      this.findAllFilteredBy(undefined, course.teacherId, [
+        AttendanceStatus.OPEN,
+      ]).length > 0 ||
+      this.findAllFilteredBy(undefined, course.teacherId, [
+        AttendanceStatus.INTERRUPTED,
+      ]).length > 0
+    ) {
+      return CreationErrorCode.ONGOING_ATTENDANCE;
+    }
+
+    let sheetId = crypto.randomUUID();
 
     // challenges
 
     let signatures = this.signatureService.generateSignatureChallenges(
-      course,
+      sheetId,
       course.studentList,
       course.teacherId,
     );
 
     // create the new sheet
     let newSheet: Sheet = {
-      id: new Date().getTime() + '',
+      id: sheetId,
       courseLabel: course.label,
       courseStartDate: course.startDate,
       courseEndDate: course.endDate,
       teacherId: course.teacherId,
       studentsSignatures: signatures.studentsSignatures,
       teacherSignature: signatures.teacherSignature,
-      isAttendanceOngoing: true,
+      attendanceStatus: AttendanceStatus.OPEN,
+      studentsAttendance: new Map(),
     };
 
     // store new sheet
@@ -56,20 +78,35 @@ export class SheetService {
     // mock signature
     // this.mockSignature(newSheet);
 
-    this.webSocket.publishSheetUpdate(newSheet.id, new SheetDto(newSheet));
     return newSheet;
   }
 
   findAll() {
-    return sheets.filter((s) => s.isAttendanceOngoing);
+    return sheets;
   }
 
-  findAllByStudentId(studentId: string) {
-    return this.findAll().filter((s) => s.studentsSignatures.has(studentId));
+  findAllFilteredBy(
+    studentId: string | undefined,
+    teacherId: string | undefined,
+    attendanceStatus: [AttendanceStatus] | undefined,
+  ) {
+    let res = this.findAll();
+    if (studentId !== undefined) {
+      res = res.filter((s) => s.studentsSignatures.has(studentId));
+    }
+    if (teacherId !== undefined) {
+      res = res.filter((s) => s.teacherId === teacherId);
+    }
+    if (attendanceStatus !== undefined) {
+      res = res.filter((s) => attendanceStatus.includes(s.attendanceStatus));
+    }
+
+    let dtoRes = res.map((s) => new SheetDto(s));
+    return dtoRes;
   }
 
   findOne(id: string) {
-    return sheets.find((sheet) => sheet.id === id && sheet.isAttendanceOngoing);
+    return sheets.find((sheet) => sheet.id === id);
   }
 
   update(id: string, updateSheetDto: UpdateSheetDto) {
@@ -83,6 +120,8 @@ export class SheetService {
   }
 
   addSignature(signatureRequest: SignatureRequest) {
+    console.log('addSignature', JSON.stringify(signatureRequest));
+
     // get the sheet
     let sheet = sheets.find((sheet) => sheet.id === signatureRequest.sheetId);
     if (sheet === undefined) {
@@ -93,24 +132,23 @@ export class SheetService {
     let target = sheet.studentsSignatures.get(signatureRequest.personId);
     if (target !== undefined) {
       // in case of student signature
-      if (!sheet.isAttendanceOngoing) {
+      if (!(sheet.attendanceStatus === AttendanceStatus.OPEN)) {
         // the attendance must be ongoing. Trigger failure.
-        console.log('attendance not ongoing');
+        console.log('attendance not open');
         return false;
       }
+      // update the signature
+      target.signature = signatureRequest.signature;
     } else {
       // in case of teacher signature
       target = sheet.teacherSignature;
-      if (sheet.isAttendanceOngoing) {
-        // the attendance must be stopped. Trigger the stop.
-        sheet.isAttendanceOngoing = false;
-      }
+      sheet.attendanceStatus = AttendanceStatus.CLOSED;
+      this.attendanceStatusUpdateWebSocket.publishAttendanceStatusUpdate(
+        sheet.id,
+        sheet.attendanceStatus,
+      );
+      sheet.teacherSignature.signature = signatureRequest.signature;
     }
-    // update the signature
-    target.signature = signatureRequest.signature;
-
-    // publish sheet update
-    this.webSocket.publishSheetUpdate(sheet.id, new SheetDto(sheet));
 
     return true;
   }
@@ -120,8 +158,67 @@ export class SheetService {
     if (sheet === undefined) {
       return undefined;
     }
-    sheet.isAttendanceOngoing = false;
+    sheet.attendanceStatus = AttendanceStatus.INTERRUPTED;
+    this.attendanceStatusUpdateWebSocket.publishAttendanceStatusUpdate(
+      sheet.id,
+      sheet.attendanceStatus,
+    );
     return sheet;
+  }
+
+  resumeAttendance(id: string) {
+    let sheet = this.findOne(id);
+    if (sheet === undefined) {
+      return undefined;
+    }
+    sheet.attendanceStatus = AttendanceStatus.OPEN;
+    this.attendanceStatusUpdateWebSocket.publishAttendanceStatusUpdate(
+      sheet.id,
+      sheet.attendanceStatus,
+    );
+    return sheet;
+  }
+
+  completeSheet(
+    sheetId: string,
+    endAttendanceRequest: EndAttendanceRequestDto,
+  ) {
+    let sheet = this.findOne(sheetId);
+    if (sheet === undefined) {
+      return undefined;
+    }
+
+    // check if the teacher signature is valid
+    if (
+      !this.signatureService.checkSignatureRequest(
+        new SignatureRequest(
+          sheet.teacherId,
+          sheetId,
+          endAttendanceRequest.teacherSignature,
+        ),
+      )
+    ) {
+      return false;
+    }
+
+    // update teacher signature
+    sheet.teacherSignature.signature = endAttendanceRequest.teacherSignature;
+
+    // update attendance status
+    sheet.attendanceStatus = AttendanceStatus.CLOSED;
+
+    // add the final attendance list
+    sheet.studentsAttendance = new Map(
+      Object.entries(endAttendanceRequest.studentsAttendance),
+    );
+
+    console.log('completeSheet', JSON.stringify(sheet));
+
+    this.attendanceStatusUpdateWebSocket.publishAttendanceStatusUpdate(
+      sheet.id,
+      sheet.attendanceStatus,
+    );
+    return true;
   }
 
   mockSignature(sheet: Sheet) {

@@ -8,5 +8,12 @@ export class Sheet {
   teacherId: string;
   studentsSignatures: Map<string, Signature>;
   teacherSignature: Signature;
-  isAttendanceOngoing: boolean;
+  attendanceStatus: AttendanceStatus;
+  studentsAttendance: Map<string, boolean>;
+}
+
+export enum AttendanceStatus {
+  OPEN = 'OPEN',
+  CLOSED = 'CLOSED',
+  INTERRUPTED = 'INTERRUPTED',
 }

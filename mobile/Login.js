@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import axios from "axios";
 import { BASE_URL } from "./global";
+import NFCModal from "./NFCModal";
 
 export default function Login({ navigation }) {
   const [userId, setUserId] = useState("");
@@ -21,9 +22,22 @@ export default function Login({ navigation }) {
         userId: userId,
       });
       if (r.status === 201) {
-        console.log("Authentication done : ", r.data);
-        if (r.data.isTeacher)
-          navigation.navigate("SheetCreation", { userData: r.data });
+        if (r.data.isTeacher){
+          try {
+            const response = await axios.get(
+                `${BASE_URL}/sheet`,{ params: { teacherId: r.data.id, attendanceStatus: ["OPEN", "INTERRUPTED"]} }
+            );
+            if(response.data.length > 0){ // if there is an open sheet
+              console.log("Sheet passed through attendance component : ", response.data[0]);
+              navigation.push("Attendance", { createdSheet: response.data[0], teacherData: r.data });
+            }
+            else{
+              navigation.push("SheetCreation", { userData: r.data });
+            }
+          } catch (error) {
+            alert("Request failed ->\n " + error);
+          }
+        }
         else navigation.navigate("StudentSpace", { userData: r.data });
       }
     } catch (error) {
@@ -46,6 +60,7 @@ export default function Login({ navigation }) {
           placeholder="N° étudiant ou mail"
           placeholderTextColor="#003f5c"
           onChangeText={(userId) => setUserId(userId)}
+          autoCapitalize="none"
         />
       </View>
       {/*TODO: uncomment this when the password is implemented*/}
