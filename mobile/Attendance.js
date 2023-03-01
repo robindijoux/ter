@@ -167,6 +167,7 @@ const Attendance = ({ navigation, route }) => {
         .post(BASE_URL + "/sheet/" + sheet.id + "/attendanceEnd", body)
         .then((r) => {
           navigation.push("SheetCreation", { userData: teacherData });
+          Toast.show("Sheet successfully signed.", Toast.durations.LONG);
         })
         .catch((e) => {
           console.log("Sign sheet error", e);
@@ -262,39 +263,42 @@ const Attendance = ({ navigation, route }) => {
           isModalVisible={isNFCRequestOn}
           setModalVisible={setIsNFCRequestOn}
         />
-        {attendanceStatus === "OPEN" && (
+        {nfcSheet ? (
+          <Button
+            onPress={signSheet}
+            title="Sign sheet"
+            accessibilityLabel="Sign sheet"
+            color="#00b8ff"
+          />
+        ) : (
           <Fragment>
+            {attendanceStatus === "OPEN" && (
+              <Button
+                onPress={stopAttendance}
+                title="Pause Attendance"
+                accessibilityLabel="Stop Attendance"
+                color="#00b8ff"
+              />
+            )}
+            {attendanceStatus === "INTERRUPTED" && (
+              <Button
+                onPress={resumeAttendance}
+                title="Resume Attendance"
+                accessibilityLabel="Resume Attendance"
+                color="#00b8ff"
+              />
+            )}
+            <Button
+              title="Read NFC tag"
+              onPress={readSheetOnNfcTag}
+              color="#00b8ff"
+            />
             <Button
               onPress={writeSheetOnNfcTag}
               title="Write sheet on NFC tag"
               accessibilityLabel="Write sheet on NFC tag"
               color="#00b8ff"
             />
-            <Button
-              onPress={stopAttendance}
-              title="Stop Attendance"
-              accessibilityLabel="Stop Attendance"
-              color="#00b8ff"
-            />
-          </Fragment>
-        )}
-        {attendanceStatus === "INTERRUPTED" && (
-          <Fragment>
-            <Button title="Read" onPress={readSheetOnNfcTag} color="#00b8ff" />
-            <Button
-              onPress={resumeAttendance}
-              title="Resume Attendance"
-              accessibilityLabel="Resume Attendance"
-              color="#00b8ff"
-            />
-            {nfcSheet && (
-              <Button
-                onPress={signSheet}
-                title="Sign sheet"
-                accessibilityLabel="Sign sheet"
-                color="#00b8ff"
-              />
-            )}
           </Fragment>
         )}
       </View>

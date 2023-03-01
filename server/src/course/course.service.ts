@@ -6,7 +6,7 @@ import { Course } from './entities/course.entity';
 let courses: Course[] = [
   {
     id: '1',
-    label: "Travail d'étude et de recherche",
+    label: "Travail d'Etude et de Recherche",
     teacherId: 'yves.roudier@unice.fr',
     studentList: ['dr80', 'gt'],
     startDate: new Date().getTime(),
@@ -22,7 +22,7 @@ let courses: Course[] = [
   },
   {
     id: '3',
-    label: 'Algo',
+    label: 'Algorithmique',
     teacherId: 'yves.roudier@unice.fr',
     studentList: ['gt'],
     startDate: new Date().getTime() + 2 * 3600 * 1000,
@@ -30,12 +30,12 @@ let courses: Course[] = [
   },
   {
     id: '4',
-    label: 'Cybersecurité',
+    label: 'Cybersecurite',
     teacherId: 'yves.roudier@unice.fr',
     studentList: ['dr80', 'gt'],
     startDate: new Date().getTime() - 2 * 3600 * 1000,
     endDate: new Date().getTime() - 3600 * 1000,
-  }
+  },
 ];
 
 @Injectable()

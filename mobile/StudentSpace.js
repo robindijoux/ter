@@ -38,7 +38,7 @@ export default function StudentSpace({ route, navigation }) {
   }, []);
 
   useEffect(() => {
-    if(sheet === undefined) return;
+    if (sheet === undefined) return;
     setAttendanceStatus(sheet.attendanceStatus);
     // listen to the future attendance status update
     socket.on(sheet.id, (attendanceStatusUpdate) => {
@@ -48,13 +48,12 @@ export default function StudentSpace({ route, navigation }) {
   }, [sheet]);
 
   async function readSheetNfcOnTag() {
-    try{
+    try {
       setIsNFCRequestOn(true);
       const sheet = await MyNFCManager.readSheet();
       setIsNFCRequestOn(false);
       setSheet(sheet);
-    }
-    catch(e) {
+    } catch (e) {
       setIsNFCRequestOn(false);
     }
   }
@@ -68,10 +67,7 @@ export default function StudentSpace({ route, navigation }) {
         signature: "present",
       });
       //TODO: verify the response of the server (signature valid or not)
-      console.log("Signature validée !", response.data);
-      Toast.show("Signature validée !", {
-        duration: Toast.durations.LONG,
-      });
+      console.log("Signature validated", response.data);
       setIsSheetSigned(true);
     } catch (error) {
       console.log("Not signed: ", error);
@@ -80,12 +76,11 @@ export default function StudentSpace({ route, navigation }) {
 
   async function writeSheetOnNfcTag() {
     sheet.signatures[studentData.id].signature = "present";
-    try{
+    try {
       setIsNFCRequestOn(true);
       await MyNFCManager.writeSheet(sheet);
       setIsNFCRequestOn(false);
-    }
-    catch(e) {
+    } catch (e) {
       setIsSheetSigned(false);
       setIsNFCRequestOn(false);
     }
@@ -93,27 +88,54 @@ export default function StudentSpace({ route, navigation }) {
 
   const signSheet = async () => {
     await verifySignature(sheet.id);
-    Toast.show("Signature validée ! Veuillez vous approchez du tag", {duration: Toast.durations.LONG,});
+    Toast.show("Signature validated", {
+      duration: Toast.durations.LONG,
+    });
     await writeSheetOnNfcTag();
-  }
+  };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Feuille de séance en cours</Text>
-      {sheet !== undefined && (<Sheet
+    <View
+      style={{
+        flex: 1,
+        height: "100%",
+        justifyContent: "space-around",
+      }}
+    >
+      {sheet === undefined && (
+        <Text
+          style={{
+            fontSize: 20,
+            marginTop: 10,
+            alignSelf: "center",
+          }}
+        >
+          No sheet retrieved yet
+        </Text>
+      )}
+      {sheet !== undefined && (
+        <Sheet
           key={sheet.id}
           sheet={sheet}
           attendanceStatus={attendanceStatus}
           sign={signSheet}
           isSigned={isSheetSigned}
-        ></Sheet>)}
-        <Button title={"Lire une feuille de présence"} onPress={readSheetNfcOnTag}></Button>
-      <NFCModal isModalVisible={isNFCRequestOn} setModalVisible={setIsNFCRequestOn}/>
+        ></Sheet>
+      )}
+      <NFCModal
+        isModalVisible={isNFCRequestOn}
+        setModalVisible={setIsNFCRequestOn}
+      />
+      <Button
+        title={"Read sheet on NFC tag"}
+        onPress={readSheetNfcOnTag}
+        color="#00b8ff"
+      ></Button>
     </View>
   );
 }
 
-const Sheet = ({ sheet, attendanceStatus, sign, isSigned}) => {
+const Sheet = ({ sheet, attendanceStatus, sign, isSigned }) => {
   const startDate = new Date(sheet.courseStartDate);
   const endDate = new Date(sheet.courseEndDate);
 
@@ -121,28 +143,28 @@ const Sheet = ({ sheet, attendanceStatus, sign, isSigned}) => {
     <View style={styles.sheet}>
       <Text style={styles.subtitle}>{sheet.courseLabel}</Text>
       <Text>
-        Date du cours : {startDate.getDate()}/{startDate.getMonth()}/
+        Date: {startDate.getDate()}/{startDate.getMonth()}/
         {startDate.getFullYear()}
       </Text>
       <Text>
-        Heure du cours : {startDate.getHours()}:{startDate.getMinutes()} -{" "}
+        Hours: {startDate.getHours()}:{startDate.getMinutes()} -{" "}
         {endDate.getHours()}:{endDate.getMinutes()}
       </Text>
-      <Text>Statut: {attendanceStatus}</Text>
-      {isSigned && <Text style={styles.signed}>Feuille signée</Text>}
+      <Text>Status: {attendanceStatus}</Text>
+      {isSigned && <Text style={styles.signed}>Signed</Text>}
       {!isSigned && attendanceStatus !== "CLOSED" && (
         <Button
-          title={"Signer la feuille"}
+          title={"Sign sheet"}
           onPress={() => {
             sign();
           }}
           disabled={attendanceStatus !== "OPEN"}
+          color="#00b8ff"
         ></Button>
       )}
     </View>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
@@ -150,7 +172,6 @@ const styles = StyleSheet.create({
     height: "100%",
     padding: 5,
     alignItems: "center",
-    borderWidth: 2,
     borderColor: "black",
   },
   title: {
