@@ -22,23 +22,27 @@ export default function Login({ navigation }) {
         userId: userId,
       });
       if (r.status === 201) {
-        if (r.data.isTeacher){
+        if (r.data.isTeacher) {
           try {
-            const response = await axios.get(
-                `${BASE_URL}/sheet`,{ params: { teacherId: r.data.id, attendanceStatus: ["OPEN", "INTERRUPTED"]} }
-            );
-            if(response.data.length > 0){ // if there is an open sheet
-              console.log("Sheet passed through attendance component : ", response.data[0]);
-              navigation.push("Attendance", { createdSheet: response.data[0], teacherData: r.data });
-            }
-            else{
+            const response = await axios.get(`${BASE_URL}/sheet`, {
+              params: {
+                teacherId: r.data.id,
+                attendanceStatus: ["OPEN", "INTERRUPTED"],
+              },
+            });
+            if (response.data.length > 0) {
+              // if there is an open sheet
+              navigation.push("Attendance", {
+                createdSheet: response.data[0],
+                teacherData: r.data,
+              });
+            } else {
               navigation.push("SheetCreation", { userData: r.data });
             }
           } catch (error) {
             alert("Request failed ->\n " + error);
           }
-        }
-        else navigation.navigate("StudentSpace", { userData: r.data });
+        } else navigation.navigate("StudentSpace", { userData: r.data });
       }
     } catch (error) {
       alert("Authentication failed ->\n " + error);
@@ -50,8 +54,8 @@ export default function Login({ navigation }) {
       <Image style={styles.image} source={require("./assets/polytech.jpeg")} />
       <StatusBar style="dark" />
       <Text>
-        Veuillez vous identifier avec votre : {"\n"} - numéro étudiant {"\n"} -
-        mail universitaire (professeur) {"\n"}
+        Login with : {"\n\t"} - student number (student only) {"\n\t"} -
+        university mail (teacher only) {"\n"}
       </Text>
 
       <View style={styles.inputView}>

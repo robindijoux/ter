@@ -59,7 +59,12 @@ export default function SheetCreation({ route, navigation }) {
   }
 
   return (
-    <View>
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "space-between",
+      }}
+    >
       <DropdownComponent
         data={data}
         value={selectedCourse}
@@ -69,11 +74,14 @@ export default function SheetCreation({ route, navigation }) {
         {selectedCourse != null ? (
           <Text style={styles.title}>{selectedCourse.label}</Text>
         ) : (
-          <Text>Pas de cours sélectionné</Text>
+          <Text>No course selected</Text>
         )}
-        <Text style={styles.wait}>Affichage en cours de développement...</Text>
       </View>
-      <Button title={"Créer le cours"} onPress={createSheet}></Button>
+      <Button
+        title={"Create attendance sheet"}
+        onPress={createSheet}
+        color="#00b8ff"
+      ></Button>
     </View>
   );
 }
@@ -81,14 +89,14 @@ const DropdownComponent = (props) => {
   const [isFocus, setIsFocus] = useState(false);
 
   const renderLabel = () => {
-    if (props.data || isFocus) {
-      return (
-        <Text style={[styles.label, isFocus && { color: "blue" }]}>
-          Dropdown label
-        </Text>
-      );
-    }
-    return null;
+    // if (props.data || isFocus) {
+    //   return (
+    //     <Text style={[styles.label, isFocus && { color: "blue" }]}>
+    //       Dropdown label
+    //     </Text>
+    //   );
+    // }
+    // return null;
   };
 
   return (
@@ -105,8 +113,8 @@ const DropdownComponent = (props) => {
         maxHeight={300}
         labelField="label"
         valueField="id"
-        placeholder={!isFocus ? "Choisir la matière" : "..."}
-        searchPlaceholder="Chercher..."
+        placeholder={!isFocus ? "Select course" : "..."}
+        searchPlaceholder="Search..."
         onFocus={() => setIsFocus(true)}
         onBlur={() => setIsFocus(false)}
         onChange={(item) => {
@@ -134,8 +142,7 @@ const styles = StyleSheet.create({
     borderColor: "black",
     borderRadius: 8,
     marginHorizontal: 6,
-    paddingTop: 16,
-    height: 400,
+    padding: 10,
   },
   title: {
     fontSize: 20,
@@ -147,7 +154,7 @@ const styles = StyleSheet.create({
   },
   container: {
     backgroundColor: "white",
-    padding: 16,
+    padding: 5,
   },
   dropdown: {
     height: 50,
