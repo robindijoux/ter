@@ -9,6 +9,7 @@ export class Sheet {
   studentsSignatures: Map<string, Signature>;
   teacherSignature: Signature;
   attendanceStatus: AttendanceStatus;
+  studentsAttendance: Map<string, boolean>;
 }
 
 export enum AttendanceStatus {

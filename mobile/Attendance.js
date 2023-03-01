@@ -3,7 +3,6 @@ import {
   Text,
   SafeAreaView,
   Button,
-  FlatList,
   ActivityIndicator,
 } from "react-native";
 import React, { Fragment } from "react";
@@ -26,9 +25,20 @@ const Attendance = ({ navigation, route }) => {
   const [attendanceStatus, setAttendanceStatus] = useState(
     route.params.createdSheet.attendanceStatus
   );
-
   const [teacherData, setTeacherData] = useState(route.params.teacherData);
   const [isNFCRequestOn, setIsNFCRequestOn] = useState(false);
+  const [presencePreview, setPresencePreview] = useState({
+    pending: [],
+    present: [],
+    absent: [],
+    conflict: [],
+  });
+  const [editable, setEditable] = useState(false);
+  const [finalAttendanceList, setFinalAttendanceList] = useState([]);
+
+  useEffect(() => {
+    console.log("parent finalAttendanceList", finalAttendanceList);
+  }, [finalAttendanceList]);
 
   useEffect(() => {
     socket.on("connect", () => {
@@ -36,15 +46,13 @@ const Attendance = ({ navigation, route }) => {
     });
 
     socket.on(sheet.id, (args) => {
-      console.log("New signature:", args);
+      console.log("New signature in socket:", args);
       let [[studentId, signature]] = Object.entries(args);
-      // let studentId = Object.entries(args)[0];
-      // let signature = Object.entries(args)[1];
-      console.log("Student ID:", studentId);
-      console.log("Signature:", signature);
+      // console.log("Student ID:", studentId);
+      // console.log("Signature:", signature);
       let newSheet = { ...sheet };
       newSheet.signatures[studentId].signature = signature;
-      console.log("New sheet:", newSheet);
+      console.log("New sheet in socket:", newSheet);
       setSheet(newSheet);
     });
 
@@ -52,6 +60,72 @@ const Attendance = ({ navigation, route }) => {
       // console.log("Disconnect on socket ID: ",socket.id);
     });
   }, []);
+
+  useEffect(() => {
+    console.log(
+      "parent presencePreview",
+      JSON.stringify(presencePreview, null, 2)
+    );
+  }, [presencePreview]);
+
+  useEffect(() => {
+    console.log("remote sheet", sheet);
+
+    // set the presencePreview
+    let newPresencePreview = {
+      pending: Object.entries(sheet.signatures)
+        .filter(([id, signature]) => signature.signature === undefined)
+        .map(([id, signature]) => id),
+      present: [],
+      absent: [],
+      conflict: Object.entries(sheet.signatures)
+        .filter(([id, signature]) => signature.signature !== undefined)
+        .map(([id, signature]) => id),
+    };
+    console.log("newPresencePreview", newPresencePreview);
+    setPresencePreview(newPresencePreview);
+  }, [sheet]);
+
+  useEffect(() => {
+    console.log("nfc sheet", nfcSheet);
+    if (nfcSheet === undefined) return;
+
+    // validate nfc signatures with back end
+    let payloadSignatures = Object.fromEntries(
+      Object.entries(nfcSheet.signatures)
+        .filter(([id, signature]) => signature.signature != undefined)
+        .map(([id, signature]) => [id, signature.signature])
+    );
+    let payload = {
+      sheetId: nfcSheet.id,
+      signatures: payloadSignatures,
+    };
+    // console.log("payload", JSON.stringify(payload, null, 2));
+    axios
+      .post(BASE_URL + "/signature/batch", payload)
+      .then((r) => {
+        // console.log("NFC signatures validation result", r.data);
+        let newPresencePreview = {
+          pending: [],
+          present: r.data.success,
+          absent: [
+            ...r.data.failure,
+            ...Object.entries(nfcSheet.signatures)
+              .filter(([id, signature]) => signature.signature === undefined)
+              .map(([id, signature]) => id),
+          ],
+          conflict: r.data.conflict,
+        };
+
+        // console.log("newPresencePreview", newPresencePreview);
+        setPresencePreview(newPresencePreview);
+        setEditable(true);
+      })
+      .catch((e) => {
+        console.log("NFC signatures validation error", e);
+      });
+  }, [nfcSheet]);
+
   const stopAttendance = () => {
     // console.log(`${BASE_URL}/sheet/attendanceStop/${sheet.id}`);
     axios
@@ -78,15 +152,15 @@ const Attendance = ({ navigation, route }) => {
   };
 
   const signSheet = () => {
-    if (nfcSheet !== undefined) {
+    if (nfcSheet !== undefined && finalAttendanceList.length > 0) {
       let body = {
         teacherSignature: "Teacher Signature",
-        studentsSignatures: Object.fromEntries(
-          Object.entries(nfcSheet.signatures)
-            .filter((s) => s[1].signature != null)
-            .map((s) => [s[0], s[1].signature])
+        studentsAttendance: Object.fromEntries(
+          finalAttendanceList.map((studentAttendance) => [
+            studentAttendance.studentId,
+            studentAttendance.isPresent,
+          ])
         ),
-        whiteList: [],
       };
       // console.log("attendanceEnd body:", JSON.stringify(body, null, 2));
       axios
@@ -109,7 +183,9 @@ const Attendance = ({ navigation, route }) => {
       setIsNFCRequestOn(true);
       let nfcSheet = await MyNFCManager.readSheet();
       setIsNFCRequestOn(false);
-      if (nfcSheet !== undefined) setNfcSheet(nfcSheet);
+      if (nfcSheet !== undefined) {
+        setNfcSheet(nfcSheet);
+      }
     } catch (e) {
       setIsNFCRequestOn(false);
     }
@@ -172,15 +248,12 @@ const Attendance = ({ navigation, route }) => {
             </Text>
           </Text>
           <StudentTable
-            studentAndRemoteSignatureAndNfcSignatureList={Object.entries(
-              sheet.signatures
-            ).map((s) => [
-              s[0],
-              s[1].signature != null,
-              nfcSheet !== undefined
-                ? nfcSheet.signatures[s[0]].signature != null
-                : null,
-            ])}
+            key={"studentTable" + JSON.stringify(presencePreview) + editable}
+            setParentFinalAttendanceList={(newList) => {
+              setFinalAttendanceList(newList);
+            }}
+            parentAttendancePreview={presencePreview}
+            parentEditable={editable}
           />
         </View>
       )}
@@ -195,27 +268,31 @@ const Attendance = ({ navigation, route }) => {
               onPress={writeSheetOnNfcTag}
               title="Write sheet on NFC tag"
               accessibilityLabel="Write sheet on NFC tag"
+              color="#00b8ff"
             />
             <Button
               onPress={stopAttendance}
               title="Stop Attendance"
               accessibilityLabel="Stop Attendance"
+              color="#00b8ff"
             />
           </Fragment>
         )}
         {attendanceStatus === "INTERRUPTED" && (
           <Fragment>
-            <Button title="Read" onPress={readSheetOnNfcTag} />
+            <Button title="Read" onPress={readSheetOnNfcTag} color="#00b8ff" />
             <Button
               onPress={resumeAttendance}
               title="Resume Attendance"
               accessibilityLabel="Resume Attendance"
+              color="#00b8ff"
             />
             {nfcSheet && (
               <Button
                 onPress={signSheet}
                 title="Sign sheet"
                 accessibilityLabel="Sign sheet"
+                color="#00b8ff"
               />
             )}
           </Fragment>

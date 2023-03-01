@@ -153,7 +153,7 @@ export class SheetController {
   })
   @ApiNotFoundResponse({ description: 'Sheet not found' })
   @ApiUnauthorizedResponse({ description: "Invalid teacher's Signature." })
-  @ApiCreatedResponse({ description: 'Attendance is successfully closed.' })
+  @ApiCreatedResponse({ description: 'Attendance is successfully terminated.' })
   terminateAttendance(
     @Param('id') id: string,
     @Body() endAttendanceRequestDto: EndAttendanceRequestDto,
@@ -165,6 +165,6 @@ export class SheetController {
         HttpStatus.NOT_FOUND,
       );
     }
-    return { message: 'Attendance successfully resumed' };
+    return { message: 'Attendance successfully terminated' };
   }
 }
