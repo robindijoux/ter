@@ -55,7 +55,7 @@ export default function StudentSpace({ route, navigation }) {
       if(sheet.signatures[studentData.id] !== undefined)
         setSheet(sheet);
       else
-        Toast.show("Vous n'êtes pas inscrit à cette feuille de présence", {duration: Toast.durations.LONG,});
+        Toast.show("You are not enrolled in this course", {duration: Toast.durations.LONG,});
     }
     catch(e) {
       setIsNFCRequestOn(false);
